@@ -1,6 +1,6 @@
 <?php
 /**
- * Production sheet: one CSV row per piece to make, per person, with the branch it ships to.
+ * Production sheet: one CSV row per part to make, per person, with the branch it ships to.
  * Sorted by order and branch, so it doubles as a packing list.
  *
  * @package B2BCP
@@ -50,7 +50,7 @@ class B2BCP_Export {
 		}
 		$url = wp_nonce_url( admin_url( 'admin-post.php?action=b2bcp_production_csv&orders=' . $order->get_id() ), 'b2bcp_production_csv' );
 		echo '<p><a class="button" href="' . esc_url( $url ) . '">' . esc_html__( 'Download CSV', 'b2b-contract-portal' ) . '</a></p>';
-		echo '<p class="description">' . esc_html__( 'One row per piece and person, with its branch. Opens in Excel or Google Sheets.', 'b2b-contract-portal' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'One row per part and person, with its branch. Opens in Excel or Google Sheets.', 'b2b-contract-portal' ) . '</p>';
 	}
 
 	/**
@@ -133,7 +133,7 @@ class B2BCP_Export {
 			__( 'Company', 'b2b-contract-portal' ),
 			__( 'Ship to', 'b2b-contract-portal' ),
 			__( 'Address', 'b2b-contract-portal' ),
-			__( 'Kit', 'b2b-contract-portal' ),
+			__( 'Part of', 'b2b-contract-portal' ),
 			__( 'Product', 'b2b-contract-portal' ),
 			__( 'SKU', 'b2b-contract-portal' ),
 			__( 'Qty', 'b2b-contract-portal' ),
@@ -179,14 +179,14 @@ class B2BCP_Export {
 				}
 
 				// What gets produced for this line.
-				if ( ! empty( $data['kit_full'] ) && ! empty( $data['components'] ) ) {
-					$kit_name   = $item->get_name();
+				if ( ! empty( $data['complete'] ) && ! empty( $data['components'] ) ) {
+					$main_name   = $item->get_name();
 					$components = $data['components'];
 				} else {
-					$kit_name   = '';
-					if ( ! empty( $data['kit_id'] ) ) {
-						$kit      = wc_get_product( (int) $data['kit_id'] );
-						$kit_name = $kit ? $kit->get_name() : '';
+					$main_name   = '';
+					if ( ! empty( $data['part_of'] ) ) {
+						$main     = wc_get_product( (int) $data['part_of'] );
+						$main_name = $main ? $main->get_name() : '';
 					}
 					$components = array(
 						array(
@@ -201,7 +201,7 @@ class B2BCP_Export {
 				$common = $base + array(
 					'ship_to'   => $ship_to,
 					'ship_addr' => $ship_addr,
-					'kit'       => $kit_name,
+					'part_of'   => $main_name,
 				);
 
 				if ( ! empty( $data['people'] ) ) {
@@ -223,7 +223,7 @@ class B2BCP_Export {
 				} else {
 					$units = (int) $item->get_quantity();
 					foreach ( $components as $component ) {
-						$per    = ! empty( $data['kit_full'] ) ? (int) $component['qty'] : 1;
+						$per    = ! empty( $data['complete'] ) ? (int) $component['qty'] : 1;
 						$rows[] = $common + array(
 							'product' => $component['name'],
 							'sku'     => $component['sku'],
@@ -239,7 +239,7 @@ class B2BCP_Export {
 		$header = array_merge( $fixed, array_values( $labels ) );
 		$out    = array();
 		foreach ( $rows as $row ) {
-			$line = array( $row['order'], $row['date'], $row['status'], $row['company'], $row['ship_to'], $row['ship_addr'], $row['kit'], $row['product'], $row['sku'], $row['qty'], $row['person'] );
+			$line = array( $row['order'], $row['date'], $row['status'], $row['company'], $row['ship_to'], $row['ship_addr'], $row['part_of'], $row['product'], $row['sku'], $row['qty'], $row['person'] );
 			foreach ( array_keys( $labels ) as $key ) {
 				$line[] = $row['fields'][ $key ] ?? '';
 			}

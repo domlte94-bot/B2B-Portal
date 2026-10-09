@@ -33,6 +33,7 @@
 			} );
 		}
 
+		var extraOptions = [];
 		var people = box.querySelector( '.b2bcp-people' );
 		var tbody = people ? people.querySelector( '.b2bcp-people-list' ) : null;
 		var tpl = people ? people.querySelector( '.b2bcp-person-template' ) : null;
@@ -69,6 +70,11 @@
 				var row = holder.firstElementChild;
 				var all1 = people.querySelector( '.b2bcp-all-address' );
 				var sel = row.querySelector( '.b2bcp-person-address' );
+				if ( sel ) {
+					extraOptions.forEach( function ( o ) {
+						sel.appendChild( new Option( o.label, o.id ) );
+					} );
+				}
 				if ( all1 && sel && all1.value ) {
 					sel.value = all1.value;
 				}
@@ -159,20 +165,20 @@
 			el.value = fmt === 'upper' ? v.toUpperCase() : titleCase( v );
 		} );
 
-		// Kit: full kit vs. loose pieces, and which columns apply.
-		var kit = box.querySelector( '.b2bcp-kit' );
+		// Parts: complete product vs. only some parts, and which fields apply.
+		var partsBox = box.querySelector( '.b2bcp-parts-box' );
 		function mode() {
-			var checked = kit ? kit.querySelector( 'input[name=b2bcp_kit_mode]:checked' ) : null;
-			return checked ? checked.value : 'full';
+			var checked = partsBox ? partsBox.querySelector( 'input[name=b2bcp_parts_mode]:checked' ) : null;
+			return checked ? checked.value : 'complete';
 		}
 		function syncColumns() {
-			if ( ! kit || ! people ) {
+			if ( ! partsBox || ! people ) {
 				return;
 			}
 			var keys = null;
-			if ( mode() === 'pieces' ) {
+			if ( mode() === 'parts' ) {
 				keys = [];
-				all( kit, '.b2bcp-pieces li' ).forEach( function ( li ) {
+				all( partsBox, '.b2bcp-part-list li.is-alone' ).forEach( function ( li ) {
 					var cb = li.querySelector( 'input[type=checkbox]' );
 					if ( cb && cb.checked ) {
 						keys = keys.concat( ( li.getAttribute( 'data-keys' ) || '' ).split( ' ' ).filter( Boolean ) );
@@ -184,20 +190,20 @@
 				cell.style.display = show ? '' : 'none';
 			} );
 		}
-		function syncKit() {
-			if ( ! kit ) {
+		function syncParts() {
+			if ( ! partsBox ) {
 				return;
 			}
-			var pieces = mode() === 'pieces';
-			all( kit, '.b2bcp-pieces input[type=checkbox]' ).forEach( function ( cb ) {
-				cb.disabled = ! pieces;
+			var single = mode() === 'parts';
+			all( partsBox, '.b2bcp-part-list input[type=checkbox]' ).forEach( function ( cb ) {
+				cb.disabled = ! single;
 			} );
-			kit.classList.toggle( 'is-pieces', pieces );
+			partsBox.classList.toggle( 'is-parts', single );
 			syncColumns();
 		}
-		if ( kit ) {
-			kit.addEventListener( 'change', syncKit );
-			syncKit();
+		if ( partsBox ) {
+			partsBox.addEventListener( 'change', syncParts );
+			syncParts();
 		}
 
 		// Quantity per branch.
@@ -222,6 +228,87 @@
 				total();
 			} );
 			total();
+		}
+
+		// New address, saved to the company's address book without leaving the page.
+		var panel = box.querySelector( '.b2bcp-new-address' );
+		if ( panel ) {
+			var status = panel.querySelector( '.b2bcp-new-address-status' );
+			var save = function () {
+				var inputs = all( panel, 'input[data-address-key]' );
+				var missing = inputs.some( function ( input ) {
+					return input.getAttribute( 'data-required' ) && input.value.trim() === '';
+				} );
+				if ( missing ) {
+					status.textContent = i18n.required;
+					return;
+				}
+				var body = new FormData();
+				body.append( 'action', 'b2bcp_add_address' );
+				body.append( 'nonce', i18n.addressNonce );
+				inputs.forEach( function ( input ) {
+					body.append( 'address[' + input.getAttribute( 'data-address-key' ) + ']', input.value.trim() );
+				} );
+				status.textContent = i18n.saving;
+				fetch( i18n.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body } )
+					.then( function ( r ) {
+						return r.json();
+					} )
+					.then( function ( res ) {
+						if ( ! res || ! res.success ) {
+							status.textContent = ( res && res.data && res.data.message ) || i18n.failed;
+							return;
+						}
+						var a = res.data;
+						extraOptions.push( a );
+						all( box, 'select.b2bcp-person-address, select.b2bcp-all-address' ).forEach( function ( sel ) {
+							sel.appendChild( new Option( a.label, a.id ) );
+							if ( sel.classList.contains( 'b2bcp-person-address' ) && ! sel.value ) {
+								sel.value = String( a.id );
+							}
+						} );
+						var splitBody = box.querySelector( '.b2bcp-split-table tbody' );
+						if ( splitBody ) {
+							var tr = document.createElement( 'tr' );
+							var td1 = document.createElement( 'td' );
+							td1.textContent = a.label;
+							var td2 = document.createElement( 'td' );
+							td2.className = 'b2bcp-muted';
+							td2.textContent = a.line;
+							var td3 = document.createElement( 'td' );
+							var q = document.createElement( 'input' );
+							q.type = 'number';
+							q.min = '0';
+							q.className = 'b2bcp-branch-qty';
+							q.name = 'b2bcp_qty[' + a.id + ']';
+							q.setAttribute( 'aria-label', a.label );
+							td3.appendChild( q );
+							tr.appendChild( td1 );
+							tr.appendChild( td2 );
+							tr.appendChild( td3 );
+							splitBody.appendChild( tr );
+							splitBody.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+							q.focus();
+						}
+						inputs.forEach( function ( input ) {
+							if ( input.getAttribute( 'data-address-key' ) !== 'country' ) {
+								input.value = '';
+							}
+						} );
+						status.textContent = i18n.saved;
+					} )
+					.catch( function () {
+						status.textContent = i18n.failed;
+					} );
+			};
+			panel.querySelector( '.b2bcp-save-address' ).addEventListener( 'click', save );
+			// Enter inside the panel saves the address instead of submitting the order form.
+			panel.addEventListener( 'keydown', function ( e ) {
+				if ( e.key === 'Enter' ) {
+					e.preventDefault();
+					save();
+				}
+			} );
 		}
 
 		renumber();

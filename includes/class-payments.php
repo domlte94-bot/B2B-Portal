@@ -239,6 +239,10 @@ class B2BCP_Payments {
 				$order->$setter( $value );
 			}
 		}
+		// Everything ships to saved addresses: say so instead of an empty "N/A" shipping address.
+		if ( '' === $order->get_shipping_address_1() && WC()->cart && ! WC()->cart->needs_shipping_address() && WC()->cart->needs_shipping() ) {
+			$order->set_shipping_company( __( 'Several addresses — see each item', 'b2b-contract-portal' ) );
+		}
 	}
 
 	/**

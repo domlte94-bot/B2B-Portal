@@ -1,6 +1,6 @@
 <?php
 /**
- * Product page order form: people rows, kits and loose pieces, multi-address quantities;
+ * Product page order form: people rows, products with parts (complete or single parts), multi-address quantities;
  * turning one submission into cart lines; showing it in the cart and saving it on the order.
  *
  * @package B2BCP
@@ -44,6 +44,12 @@ class B2BCP_Order_Form {
 				'unit'   => __( 'unit', 'b2b-contract-portal' ),
 				'units'  => __( 'units', 'b2b-contract-portal' ),
 				'personLabel' => __( 'Person', 'b2b-contract-portal' ),
+				'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+				'addressNonce' => wp_create_nonce( 'b2bcp_address' ),
+				'saving'      => __( 'Saving…', 'b2b-contract-portal' ),
+				'saved'       => __( 'Saved. It is now in the address lists.', 'b2b-contract-portal' ),
+				'required'    => __( 'Name, address and city are required.', 'b2b-contract-portal' ),
+				'failed'      => __( 'The address could not be saved. Try again.', 'b2b-contract-portal' ),
 			)
 		);
 		if ( b2bcp_active_company_id() ) {
@@ -90,15 +96,16 @@ class B2BCP_Order_Form {
 		$company_id = b2bcp_active_company_id();
 		$addresses  = ( $config['multiaddress'] && $company_id ) ? b2bcp_get_addresses( $company_id ) : array();
 		$fields     = b2bcp_person_fields( $config );
-		$pieces     = $config['kit'] ? self::kit_pieces( $config ) : array();
-		$is_split   = $config['multiaddress'] && $addresses;
+		$parts      = $config['has_parts'] ? self::parts_display( $config ) : array();
+		$can_add    = $config['multiaddress'] && $company_id && b2bcp_user_can_add_address( get_current_user_id(), $company_id );
+		$is_split   = $config['multiaddress'] && $company_id && ( $addresses || $can_add );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- repopulating the form after a failed add to cart.
 		$posted      = isset( $_POST['b2bcp_form'] ) && (int) ( $_POST['add-to-cart'] ?? 0 ) === $product->get_id();
 		$post_people = $posted && isset( $_POST['b2bcp_people'] ) && is_array( $_POST['b2bcp_people'] ) ? wp_unslash( $_POST['b2bcp_people'] ) : array();
 		$post_qty    = $posted && isset( $_POST['b2bcp_qty'] ) && is_array( $_POST['b2bcp_qty'] ) ? array_map( 'absint', wp_unslash( $_POST['b2bcp_qty'] ) ) : array();
-		$post_mode   = $posted && isset( $_POST['b2bcp_kit_mode'] ) ? sanitize_key( wp_unslash( $_POST['b2bcp_kit_mode'] ) ) : 'full';
-		$post_pieces = $posted && isset( $_POST['b2bcp_pieces'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['b2bcp_pieces'] ) ) : array();
+		$post_mode   = $posted && isset( $_POST['b2bcp_parts_mode'] ) ? sanitize_key( wp_unslash( $_POST['b2bcp_parts_mode'] ) ) : 'complete';
+		$post_chosen = $posted && isset( $_POST['b2bcp_parts_chosen'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['b2bcp_parts_chosen'] ) ) : array();
 		// phpcs:enable
 
 		$controls_qty = $fields || $is_split;
@@ -106,37 +113,37 @@ class B2BCP_Order_Form {
 		<div class="b2bcp-order" data-controls-qty="<?php echo $controls_qty ? '1' : '0'; ?>">
 			<input type="hidden" name="b2bcp_form" value="1">
 
-			<?php if ( $config['kit'] && $pieces ) : ?>
-				<fieldset class="b2bcp-kit">
-					<legend><?php esc_html_e( 'This kit includes', 'b2b-contract-portal' ); ?></legend>
-					<?php if ( 'full_or_pieces' === $config['kit_mode'] ) : ?>
-						<p class="b2bcp-kit-modes">
-							<label><input type="radio" name="b2bcp_kit_mode" value="full" <?php checked( 'pieces' !== $post_mode ); ?>> <?php esc_html_e( 'Full kit', 'b2b-contract-portal' ); ?></label>
-							<label><input type="radio" name="b2bcp_kit_mode" value="pieces" <?php checked( 'pieces' === $post_mode ); ?>> <?php esc_html_e( 'Only some pieces', 'b2b-contract-portal' ); ?></label>
+			<?php if ( $parts ) : ?>
+				<fieldset class="b2bcp-parts-box">
+					<legend><?php esc_html_e( 'Includes', 'b2b-contract-portal' ); ?></legend>
+					<?php if ( $config['parts_alone'] ) : ?>
+						<p class="b2bcp-parts-modes">
+							<label><input type="radio" name="b2bcp_parts_mode" value="complete" <?php checked( 'parts' !== $post_mode ); ?>> <?php esc_html_e( 'Complete product', 'b2b-contract-portal' ); ?></label>
+							<label><input type="radio" name="b2bcp_parts_mode" value="parts" <?php checked( 'parts' === $post_mode ); ?>> <?php esc_html_e( 'Only some parts (replacements)', 'b2b-contract-portal' ); ?></label>
 						</p>
 					<?php endif; ?>
-					<ul class="b2bcp-pieces">
-						<?php foreach ( $pieces as $piece ) : ?>
-							<li data-keys="<?php echo esc_attr( implode( ' ', $piece['keys'] ) ); ?>">
-								<?php if ( 'full_or_pieces' === $config['kit_mode'] ) : ?>
+					<ul class="b2bcp-part-list">
+						<?php foreach ( $parts as $part ) : ?>
+							<li class="<?php echo $part['alone'] ? 'is-alone' : 'is-fixed'; ?>" data-keys="<?php echo esc_attr( implode( ' ', $part['keys'] ) ); ?>">
+								<?php if ( $part['alone'] ) : ?>
 									<label>
-										<input type="checkbox" name="b2bcp_pieces[]" value="<?php echo (int) $piece['id']; ?>" <?php checked( in_array( $piece['id'], $post_pieces, true ) ); ?>>
-										<?php echo esc_html( $piece['qty'] . ' × ' . $piece['name'] ); ?>
-										<span class="b2bcp-piece-price">
+										<input type="checkbox" name="b2bcp_parts_chosen[]" value="<?php echo (int) $part['product_id']; ?>" <?php checked( in_array( (int) $part['product_id'], $post_chosen, true ) ); ?>>
+										<?php echo esc_html( $part['qty'] . ' × ' . $part['name'] ); ?>
+										<span class="b2bcp-part-price">
 											<?php
-											/* translators: %s: price of one piece */
-											echo wp_kses_post( sprintf( __( '%s each', 'b2b-contract-portal' ), $piece['price_html'] ) );
+											/* translators: %s: price of one part */
+											echo wp_kses_post( sprintf( __( '%s each', 'b2b-contract-portal' ), $part['price_html'] ) );
 											?>
 										</span>
 									</label>
 								<?php else : ?>
-									<?php echo esc_html( $piece['qty'] . ' × ' . $piece['name'] ); ?>
+									<span class="b2bcp-part-name"><?php echo esc_html( $part['qty'] . ' × ' . $part['name'] ); ?></span>
 								<?php endif; ?>
 							</li>
 						<?php endforeach; ?>
 					</ul>
-					<?php if ( 'full_or_pieces' === $config['kit_mode'] ) : ?>
-						<p class="b2bcp-hint b2bcp-pieces-hint"><?php esc_html_e( 'Loose pieces are charged at each piece\'s price.', 'b2b-contract-portal' ); ?></p>
+					<?php if ( $config['parts_alone'] ) : ?>
+						<p class="b2bcp-hint b2bcp-parts-hint"><?php esc_html_e( 'Parts ordered alone are charged at each part\'s price.', 'b2b-contract-portal' ); ?></p>
 					<?php endif; ?>
 				</fieldset>
 			<?php endif; ?>
@@ -148,7 +155,7 @@ class B2BCP_Order_Form {
 				?>
 				<fieldset class="b2bcp-people" data-own-keys="<?php echo esc_attr( implode( ' ', $own_keys ) ); ?>">
 					<legend><?php esc_html_e( 'One row per person', 'b2b-contract-portal' ); ?></legend>
-					<?php if ( $is_split && count( $addresses ) > 1 ) : ?>
+					<?php if ( $is_split && ( count( $addresses ) > 1 || $can_add ) ) : ?>
 						<p class="b2bcp-apply-all">
 							<label><?php esc_html_e( 'Ship everyone to', 'b2b-contract-portal' ); ?>
 								<?php self::address_select( $addresses, '', '', 'b2bcp-all-address' ); ?>
@@ -158,11 +165,11 @@ class B2BCP_Order_Form {
 					<div class="b2bcp-people-list">
 						<?php
 						foreach ( array_values( $rows ) as $i => $row ) {
-							self::person_row( (string) $i, $fields, $is_split ? $addresses : array(), is_array( $row ) ? $row : array() );
+							self::person_row( (string) $i, $fields, $addresses, is_array( $row ) ? $row : array(), $is_split );
 						}
 						?>
 					</div>
-					<script type="text/html" class="b2bcp-person-template"><?php self::person_row( '__i__', $fields, $is_split ? $addresses : array(), array() ); ?></script>
+					<script type="text/html" class="b2bcp-person-template"><?php self::person_row( '__i__', $fields, $addresses, array(), $is_split ); ?></script>
 					<p class="b2bcp-hint b2bcp-paste-hint"><?php esc_html_e( 'Tip: paste a list copied from Excel into the first box (one person per line) to fill many people at once.', 'b2b-contract-portal' ); ?></p>
 					<p class="b2bcp-people-actions">
 						<button type="button" class="button b2bcp-add-person"><?php esc_html_e( '+ Add person', 'b2b-contract-portal' ); ?></button>
@@ -171,16 +178,16 @@ class B2BCP_Order_Form {
 				</fieldset>
 			<?php elseif ( $is_split ) : ?>
 				<fieldset class="b2bcp-split">
-					<legend><?php esc_html_e( 'Quantity per branch', 'b2b-contract-portal' ); ?></legend>
+					<legend><?php esc_html_e( 'Quantity per address', 'b2b-contract-portal' ); ?></legend>
 					<p class="b2bcp-apply-all">
-						<label><?php esc_html_e( 'Every branch gets', 'b2b-contract-portal' ); ?>
+						<label><?php esc_html_e( 'Every address gets', 'b2b-contract-portal' ); ?>
 							<input type="number" min="0" class="b2bcp-all-qty" inputmode="numeric">
 						</label>
 						<button type="button" class="button b2bcp-apply-qty"><?php esc_html_e( 'Apply', 'b2b-contract-portal' ); ?></button>
 					</p>
 					<div class="b2bcp-table-wrap">
 						<table class="b2bcp-split-table">
-							<thead><tr><th><?php esc_html_e( 'Branch', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Address', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Qty', 'b2b-contract-portal' ); ?></th></tr></thead>
+							<thead><tr><th><?php esc_html_e( 'Ship to', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Address', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Qty', 'b2b-contract-portal' ); ?></th></tr></thead>
 							<tbody>
 								<?php foreach ( $addresses as $address ) : ?>
 									<tr>
@@ -197,22 +204,37 @@ class B2BCP_Order_Form {
 						<p class="b2bcp-hint">
 							<?php
 							/* translators: %d: minimum units */
-							echo esc_html( sprintf( __( 'Minimum %d per branch that receives this product.', 'b2b-contract-portal' ), $config['min_per_address'] ) );
+							echo esc_html( sprintf( __( 'Minimum %d per address that receives this product.', 'b2b-contract-portal' ), $config['min_per_address'] ) );
 							?>
 						</p>
 					<?php endif; ?>
 				</fieldset>
 			<?php endif; ?>
 
+			<?php if ( $can_add ) : ?>
+				<details class="b2bcp-new-address"<?php echo $addresses ? '' : ' open'; ?>>
+					<summary><?php esc_html_e( '+ Add a new address', 'b2b-contract-portal' ); ?></summary>
+					<div class="b2bcp-form-grid">
+						<?php foreach ( b2bcp_address_keys() as $key => $label ) : ?>
+							<?php $req = in_array( $key, array( 'label', 'address_1', 'city' ), true ); ?>
+							<label class="b2bcp-field">
+								<span class="b2bcp-field-label"><?php echo esc_html( $label ); ?><?php echo $req ? ' <abbr class="required">*</abbr>' : ''; ?></span>
+								<input type="text" data-address-key="<?php echo esc_attr( $key ); ?>" value="<?php echo 'country' === $key ? esc_attr( WC()->countries->get_base_country() ) : ''; ?>"<?php echo $req ? ' data-required="1"' : ''; ?>>
+							</label>
+						<?php endforeach; ?>
+					</div>
+					<p class="b2bcp-new-address-actions">
+						<button type="button" class="button b2bcp-save-address"><?php esc_html_e( 'Save address', 'b2b-contract-portal' ); ?></button>
+						<span class="b2bcp-new-address-status" role="status" aria-live="polite"></span>
+					</p>
+					<p class="b2bcp-hint"><?php esc_html_e( 'It is saved to your company\'s address book, so everyone in your company can use it next time.', 'b2b-contract-portal' ); ?></p>
+				</details>
+			<?php endif; ?>
+
 			<?php if ( $config['multiaddress'] && ! $company_id ) : ?>
-				<p class="b2bcp-hint"><?php esc_html_e( 'Contract customers can log in to ship this to several branches in one order.', 'b2b-contract-portal' ); ?></p>
-			<?php elseif ( $config['multiaddress'] && ! $addresses ) : ?>
-				<p class="b2bcp-hint">
-					<?php esc_html_e( 'Your company has no branches saved yet, so this ships to the checkout address.', 'b2b-contract-portal' ); ?>
-					<?php if ( b2bcp_user_is_company_admin( get_current_user_id(), $company_id ) ) : ?>
-						<a href="<?php echo esc_url( wc_get_account_endpoint_url( 'company' ) ); ?>"><?php esc_html_e( 'Add branches', 'b2b-contract-portal' ); ?></a>
-					<?php endif; ?>
-				</p>
+				<p class="b2bcp-hint"><?php esc_html_e( 'Contract customers can log in to ship this to several addresses in one order.', 'b2b-contract-portal' ); ?></p>
+			<?php elseif ( $config['multiaddress'] && ! $is_split ) : ?>
+				<p class="b2bcp-hint"><?php esc_html_e( 'Your company has no shipping addresses saved yet, so this ships to the checkout address. Your company admin can add addresses.', 'b2b-contract-portal' ); ?></p>
 			<?php endif; ?>
 		</div>
 		<?php
@@ -225,8 +247,9 @@ class B2BCP_Order_Form {
 	 * @param array  $fields    Fields.
 	 * @param array  $addresses Addresses (empty when not splitting).
 	 * @param array  $values    Values.
+	 * @param bool   $split     Whether each person picks an address.
 	 */
-	private static function person_row( $i, array $fields, array $addresses, array $values ) {
+	private static function person_row( $i, array $fields, array $addresses, array $values, $split = false ) {
 		$required = ' <abbr class="required" title="' . esc_attr__( 'required', 'b2b-contract-portal' ) . '">*</abbr>';
 		echo '<div class="b2bcp-person">';
 		echo '<div class="b2bcp-person-head"><span class="b2bcp-num"></span>';
@@ -235,11 +258,11 @@ class B2BCP_Order_Form {
 		foreach ( $fields as $field ) {
 			$value = isset( $values[ $field['key'] ] ) ? sanitize_text_field( (string) $values[ $field['key'] ] ) : '';
 			echo '<label class="b2bcp-field" data-key="' . esc_attr( $field['key'] ) . '"><span class="b2bcp-field-label">' . esc_html( $field['label'] ) . ( $field['required'] ? $required : '' ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput -- $required is escaped above.
-			// Required is enforced on the server (pieces not ordered do not need their fields).
+			// Required is enforced on the server (parts not ordered do not need their fields).
 			B2BCP_Fields::render_input( array_merge( $field, array( 'required' => false ) ), 'b2bcp_people[' . $i . '][' . $field['key'] . ']', $value );
 			echo '</label>';
 		}
-		if ( $addresses ) {
+		if ( $split ) {
 			echo '<label class="b2bcp-field b2bcp-field-address"><span class="b2bcp-field-label">' . esc_html__( 'Ship to', 'b2b-contract-portal' ) . $required . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
 			$selected = isset( $values['_address'] ) ? (string) absint( $values['_address'] ) : ( 1 === count( $addresses ) ? (string) $addresses[0]['id'] : '' );
 			self::address_select( $addresses, 'b2bcp_people[' . $i . '][_address]', $selected, 'b2bcp-person-address' );
@@ -257,8 +280,8 @@ class B2BCP_Order_Form {
 	 * @param string $class     CSS class.
 	 */
 	private static function address_select( array $addresses, $name, $selected, $class ) {
-		printf( '<select class="%s"%s aria-label="%s">', esc_attr( $class ), $name ? ' name="' . esc_attr( $name ) . '"' : '', esc_attr__( 'Ship to branch', 'b2b-contract-portal' ) );
-		echo '<option value="">' . esc_html__( 'Choose branch…', 'b2b-contract-portal' ) . '</option>';
+		printf( '<select class="%s"%s aria-label="%s">', esc_attr( $class ), $name ? ' name="' . esc_attr( $name ) . '"' : '', esc_attr__( 'Ship to address', 'b2b-contract-portal' ) );
+		echo '<option value="">' . esc_html__( 'Choose address…', 'b2b-contract-portal' ) . '</option>';
 		foreach ( $addresses as $address ) {
 			printf( '<option value="%1$d"%2$s>%3$s</option>', (int) $address['id'], selected( $selected, (string) $address['id'], false ), esc_html( b2bcp_address_label( $address ) ) );
 		}
@@ -266,25 +289,22 @@ class B2BCP_Order_Form {
 	}
 
 	/**
-	 * Kit pieces with display data.
+	 * Parts with display data.
 	 *
-	 * @param array $config Kit config.
+	 * @param array $config Product config.
 	 * @return array[]
 	 */
-	public static function kit_pieces( array $config ) {
+	public static function parts_display( array $config ) {
 		$out = array();
-		foreach ( $config['kit_items'] as $item ) {
-			$piece = wc_get_product( (int) $item['product_id'] );
-			if ( ! $piece ) {
-				continue;
-			}
-			$piece_config = b2bcp_product_config( $piece );
-			$out[]        = array(
-				'id'         => $piece->get_id(),
-				'qty'        => (int) $item['qty'],
-				'name'       => $piece->get_name(),
-				'price_html' => $piece->get_price_html(),
-				'keys'       => $piece_config['personalized'] ? wp_list_pluck( $piece_config['fields'], 'key' ) : array(),
+		foreach ( $config['parts'] as $part ) {
+			$product = $part['product_id'] ? wc_get_product( (int) $part['product_id'] ) : null;
+			$out[]   = array(
+				'product_id' => $product ? $product->get_id() : 0,
+				'qty'        => (int) $part['qty'],
+				'name'       => $part['name'],
+				'alone'      => $part['alone'] && $product && $product->is_purchasable(),
+				'price_html' => $product ? $product->get_price_html() : '',
+				'keys'       => wp_list_pluck( b2bcp_part_fields( $part, $config ), 'key' ),
 			);
 		}
 		return $out;
@@ -371,32 +391,31 @@ class B2BCP_Order_Form {
 			);
 		}
 
-		// What is being ordered: the product itself, the full kit, or some loose pieces.
+		// What is being ordered: the product (complete), or only some of its parts.
 		$targets = array();
-		if ( $config['kit'] && 'full_or_pieces' === $config['kit_mode'] && isset( $post['b2bcp_kit_mode'] ) && 'pieces' === $post['b2bcp_kit_mode'] ) {
-			$chosen = array_map( 'absint', (array) ( $post['b2bcp_pieces'] ?? array() ) );
-			foreach ( $config['kit_items'] as $item ) {
-				if ( in_array( (int) $item['product_id'], $chosen, true ) ) {
-					$piece_config = b2bcp_product_config( (int) $item['product_id'] );
-					$targets[]    = array(
-						'product_id' => (int) $item['product_id'],
-						'per_unit'   => max( 1, (int) $item['qty'] ),
-						'fields'     => $piece_config['personalized'] ? $piece_config['fields'] : array(),
-						'kit_id'     => $product->get_id(),
-						'kit_full'   => false,
+		if ( $config['parts_alone'] && isset( $post['b2bcp_parts_mode'] ) && 'parts' === $post['b2bcp_parts_mode'] ) {
+			$chosen = array_map( 'absint', (array) ( $post['b2bcp_parts_chosen'] ?? array() ) );
+			foreach ( $config['parts'] as $part ) {
+				if ( $part['alone'] && in_array( (int) $part['product_id'], $chosen, true ) ) {
+					$targets[] = array(
+						'product_id' => (int) $part['product_id'],
+						'per_unit'   => max( 1, (int) $part['qty'] ),
+						'fields'     => b2bcp_part_fields( $part, $config ),
+						'part_of'    => $product->get_id(),
+						'complete'   => false,
 					);
 				}
 			}
 			if ( ! $targets ) {
-				$errors[] = __( 'Choose at least one piece of the kit.', 'b2b-contract-portal' );
+				$errors[] = __( 'Choose at least one part.', 'b2b-contract-portal' );
 			}
 		} else {
 			$targets[] = array(
 				'product_id' => $product->get_id(),
 				'per_unit'   => 1,
 				'fields'     => b2bcp_person_fields( $config ),
-				'kit_id'     => 0,
-				'kit_full'   => (bool) $config['kit'],
+				'part_of'    => 0,
+				'complete'   => (bool) $config['has_parts'],
 			);
 		}
 
@@ -453,7 +472,7 @@ class B2BCP_Order_Form {
 					$address_id = absint( $row['_address'] ?? 0 );
 					if ( ! isset( $addresses[ $address_id ] ) ) {
 						/* translators: %d: row number */
-						$errors[]   = sprintf( __( 'Person %d: choose the branch it ships to.', 'b2b-contract-portal' ), $number );
+						$errors[]   = sprintf( __( 'Person %d: choose the address it ships to.', 'b2b-contract-portal' ), $number );
 						$address_id = 0;
 					}
 				}
@@ -478,7 +497,7 @@ class B2BCP_Order_Form {
 				}
 			}
 			if ( ! $groups ) {
-				$errors[] = __( 'Enter a quantity for at least one branch.', 'b2b-contract-portal' );
+				$errors[] = __( 'Enter a quantity for at least one address.', 'b2b-contract-portal' );
 			}
 		} else {
 			$qty      = max( 1, absint( $post['quantity'] ?? 1 ) );
@@ -492,7 +511,7 @@ class B2BCP_Order_Form {
 			foreach ( $groups as $address_id => $group ) {
 				if ( $address_id && $group['qty'] < $config['min_per_address'] ) {
 					/* translators: 1: branch, 2: minimum */
-					$errors[] = sprintf( __( '%1$s: the minimum per branch is %2$d.', 'b2b-contract-portal' ), b2bcp_address_label( $addresses[ $address_id ] ), $config['min_per_address'] );
+					$errors[] = sprintf( __( '%1$s: the minimum per address is %2$d.', 'b2b-contract-portal' ), b2bcp_address_label( $addresses[ $address_id ] ), $config['min_per_address'] );
 				}
 			}
 		}
@@ -504,23 +523,17 @@ class B2BCP_Order_Form {
 			);
 		}
 
-		// Snapshot of the kit's pieces, so production sheets stay right if the kit is edited later.
+		// Snapshot of the parts, so production sheets stay right if the product is edited later.
 		$components = array();
-		if ( $config['kit'] ) {
-			foreach ( $config['kit_items'] as $item ) {
-				$piece = wc_get_product( (int) $item['product_id'] );
-				if ( ! $piece ) {
-					continue;
-				}
-				$piece_config = b2bcp_product_config( $piece );
-				$components[] = array(
-					'product_id' => $piece->get_id(),
-					'name'       => $piece->get_name(),
-					'sku'        => $piece->get_sku(),
-					'qty'        => max( 1, (int) $item['qty'] ),
-					'keys'       => $piece_config['personalized'] ? wp_list_pluck( $piece_config['fields'], 'key' ) : array(),
-				);
-			}
+		foreach ( $config['parts'] as $part ) {
+			$piece        = $part['product_id'] ? wc_get_product( (int) $part['product_id'] ) : null;
+			$components[] = array(
+				'product_id' => $piece ? $piece->get_id() : 0,
+				'name'       => $part['name'],
+				'sku'        => $piece ? $piece->get_sku() : '',
+				'qty'        => (int) $part['qty'],
+				'keys'       => wp_list_pluck( b2bcp_part_fields( $part, $config ), 'key' ),
+			);
 		}
 
 		$lines = array();
@@ -544,9 +557,9 @@ class B2BCP_Order_Form {
 						'people'     => $labels ? $people : array(),
 						'labels'     => $labels,
 						'per_person' => $target['per_unit'],
-						'kit_id'     => $target['kit_id'],
-						'kit_full'   => $target['kit_full'],
-						'components' => $target['kit_full'] ? $components : array(),
+						'part_of'    => $target['part_of'],
+						'complete'   => $target['complete'],
+						'components' => $target['complete'] ? $components : array(),
 						// Per-person lines must never merge with an identical earlier line:
 						// WooCommerce would add the quantities but keep one people list.
 						'line_id'    => $labels ? wp_generate_uuid4() : '',
@@ -580,23 +593,23 @@ class B2BCP_Order_Form {
 				'value' => b2bcp_address_label( $data['address'] ) . ' — ' . b2bcp_address_line( $data['address'] ),
 			);
 		}
-		if ( ! empty( $data['kit_full'] ) ) {
+		if ( ! empty( $data['complete'] ) ) {
 			$names = array();
 			foreach ( (array) ( $data['components'] ?? array() ) as $component ) {
 				$names[] = (int) $component['qty'] . ' × ' . $component['name'];
 			}
 			if ( $names ) {
 				$out[] = array(
-					'key'   => __( 'Kit includes', 'b2b-contract-portal' ),
+					'key'   => __( 'Includes', 'b2b-contract-portal' ),
 					'value' => implode( ', ', $names ),
 				);
 			}
 		}
-		if ( ! empty( $data['kit_id'] ) ) {
-			$kit   = wc_get_product( (int) $data['kit_id'] );
+		if ( ! empty( $data['part_of'] ) ) {
+			$main  = wc_get_product( (int) $data['part_of'] );
 			$out[] = array(
-				'key'   => __( 'From kit', 'b2b-contract-portal' ),
-				'value' => $kit ? $kit->get_name() : '#' . (int) $data['kit_id'],
+				'key'   => __( 'Part of', 'b2b-contract-portal' ),
+				'value' => $main ? $main->get_name() : '#' . (int) $data['part_of'],
 			);
 		}
 		if ( ! empty( $data['people'] ) ) {

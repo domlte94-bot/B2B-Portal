@@ -70,9 +70,8 @@ $deskbar = make_product( 'Desk Bar', '40', array( '_b2bcp_visibility' => 'restri
 $plate   = make_product( 'Door Plate', '20', array( '_b2bcp_visibility' => 'restricted', '_b2bcp_personalized' => 'yes', '_b2bcp_fields' => array( $name_field ) ) );
 $kit     = make_product( 'Welcome Kit', '100', array(
 	'_b2bcp_visibility' => 'restricted',
-	'_b2bcp_kit'        => 'yes',
-	'_b2bcp_kit_mode'   => 'full_or_pieces',
-	'_b2bcp_kit_items'  => array( array( 'product_id' => $badge, 'qty' => 2 ), array( 'product_id' => $deskbar, 'qty' => 1 ), array( 'product_id' => $plate, 'qty' => 1 ) ),
+	'_b2bcp_has_parts'  => 'yes',
+	'_b2bcp_parts'      => array( array( 'product_id' => $badge, 'name' => '', 'qty' => 2, 'alone' => true ), array( 'product_id' => $deskbar, 'name' => '', 'qty' => 1, 'alone' => true ), array( 'product_id' => $plate, 'name' => '', 'qty' => 1, 'alone' => true ) ),
 	'_b2bcp_multiaddress' => 'yes',
 ) );
 $sign    = make_product( 'Holiday Sign', '50', array( '_b2bcp_visibility' => 'restricted', '_b2bcp_multiaddress' => 'yes', '_b2bcp_min_per_address' => 2 ) );
@@ -86,7 +85,17 @@ $quote   = make_product( 'Custom Monument Sign', '0', array(
 		array( 'key' => 'notes', 'label' => 'Notes', 'type' => 'textarea', 'required' => false, 'maxlength' => 0, 'format' => 'none', 'options' => array() ),
 	),
 ) );
-ok( $kit && $sign && $quote, 'Products created (badge, deskbar, plate, kit, sign, mug, quote)' );
+$magnet = make_product( 'Name Magnet', '15', array( '_b2bcp_visibility' => 'restricted', '_b2bcp_personalized' => 'yes', '_b2bcp_fields' => array( $name_field, $title_field ) ) );
+$mbar   = make_product( 'Magnetic Desk Bar', '45', array(
+	'_b2bcp_visibility' => 'restricted',
+	'_b2bcp_personalized' => 'yes',
+	'_b2bcp_fields'     => array( $name_field, $title_field ),
+	'_b2bcp_has_parts'  => 'yes',
+	'_b2bcp_parts'      => array( array( 'product_id' => 0, 'name' => 'Walnut base', 'qty' => 1, 'alone' => false ), array( 'product_id' => $magnet, 'name' => '', 'qty' => 1, 'alone' => true ), array( 'product_id' => 0, 'name' => 'Back plate', 'qty' => 1, 'alone' => true ) ),
+) );
+ok( $kit && $sign && $quote && $mbar, 'Products created (badge, deskbar, plate, kit, sign, mug, quote, magnetic desk bar)' );
+$mcfg = b2bcp_product_config( $mbar );
+ok( 3 === count( $mcfg['parts'] ) && 'Name Magnet' === $mcfg['parts'][1]['name'] && false === $mcfg['parts'][2]['alone'], 'Parts: name-only parts never sold alone, product part keeps its name' );
 
 /* ------------------------------------------------------------ companies */
 section( 'Companies' );
@@ -97,7 +106,7 @@ update_post_meta( $bank, '_b2bcp_terms', 'Net 30' );
 update_post_meta( $bank, '_b2bcp_color', '#0b5394' );
 update_post_meta( $bank, '_b2bcp_notify_email', 'cs@printshop.test' );
 update_post_meta( $bank, '_b2bcp_billing', array( 'company' => 'Accounts Payable - MTB', 'address_1' => '1111 Civic Dr', 'address_2' => 'Suite 290', 'city' => 'Walnut Creek', 'state' => 'CA', 'postcode' => '94596', 'country' => 'US', 'email' => 'ap@mtb.test', 'phone' => '' ) );
-b2bcp_replace_assignments( 'company', $bank, array( $kit => 95.0, $badge => 8.0, $deskbar => 30.0, $plate => null, $sign => 40.0 ) );
+b2bcp_replace_assignments( 'company', $bank, array( $kit => 95.0, $badge => 8.0, $deskbar => 30.0, $plate => null, $sign => 40.0, $mbar => 42.0, $magnet => 12.0 ) );
 $a1 = b2bcp_save_address( $bank, b2bcp_sanitize_address( array( 'label' => 'Downtown', 'code' => '014', 'address_1' => '1 Main St', 'city' => 'Chicago', 'state' => 'IL', 'postcode' => '60601', 'country' => 'US' ) ) );
 $a2 = b2bcp_save_address( $bank, b2bcp_sanitize_address( array( 'label' => 'Oak Park', 'code' => '022', 'address_1' => '200 Lake St', 'city' => 'Oak Park', 'state' => 'IL', 'postcode' => '60302', 'country' => 'US' ) ) );
 $a3 = b2bcp_save_address( $bank, b2bcp_sanitize_address( array( 'label' => 'Peoria', 'code' => '031', 'address_1' => '5 Water St', 'city' => 'Peoria', 'state' => 'IL', 'postcode' => '61602', 'country' => 'US' ) ) );
@@ -179,16 +188,16 @@ ok( 2 === $downtown['qty'] && 'Maria Garcia' === $downtown['data']['people'][0][
 ok( 3 === count( $downtown['data']['components'] ) && 2 === $downtown['data']['components'][0]['qty'], 'Kit components snapshot (2 badges per kit)' );
 
 $r = B2BCP_Order_Form::build_lines( $kitp, $config, array(
-	'b2bcp_kit_mode' => 'pieces',
-	'b2bcp_pieces'   => array( $badge ),
+	'b2bcp_parts_mode'   => 'parts',
+	'b2bcp_parts_chosen' => array( $badge ),
 	'b2bcp_people'   => array( array( 'name' => 'ana lopez', 'title' => 'VP', 'color' => '', '_address' => $a3 ) ),
 ) );
 ok( ! $r['errors'] && 1 === count( $r['lines'] ) && $badge === $r['lines'][0]['product_id'], 'Loose piece: only the badge' );
 ok( 2 === $r['lines'][0]['qty'] && ! isset( $r['lines'][0]['data']['people'][0]['color'] ), 'Loose badge: kit qty 2 per person, deskbar-only field not required/kept' );
-ok( $kit === $r['lines'][0]['data']['kit_id'], 'Loose piece remembers its kit' );
+ok( $kit === $r['lines'][0]['data']['part_of'], 'Single part remembers the product it belongs to' );
 
-$r = B2BCP_Order_Form::build_lines( $kitp, $config, array( 'b2bcp_kit_mode' => 'pieces' ) );
-ok( in_array( 'Choose at least one piece of the kit.', $r['errors'], true ), 'Pieces mode with nothing chosen → error' );
+$r = B2BCP_Order_Form::build_lines( $kitp, $config, array( 'b2bcp_parts_mode' => 'parts' ) );
+ok( in_array( 'Choose at least one part.', $r['errors'], true ), 'Pieces mode with nothing chosen → error' );
 
 $r = B2BCP_Order_Form::build_lines( $kitp, $config, array(
 	'b2bcp_people' => array(
@@ -200,12 +209,21 @@ $e = implode( ' | ', $r['errors'] );
 ok( false !== strpos( $e, 'Person 1: Name is required' ), 'Missing required name flagged' );
 ok( false !== strpos( $e, 'at most 20 characters' ), 'Too-long name flagged' );
 ok( false !== strpos( $e, 'choose an option from the list' ), 'Invalid dropdown option flagged' );
-ok( false !== strpos( $e, 'choose the branch' ), 'Branch not of this company flagged' );
+ok( false !== strpos( $e, 'choose the address' ), 'Branch not of this company flagged' );
 echo "     errors: $e\n";
+
+$mbarp = wc_get_product( $mbar );
+$r     = B2BCP_Order_Form::build_lines( $mbarp, $mcfg, array( 'b2bcp_people' => array( array( 'name' => 'ana lopez', 'title' => 'VP' ) ) ) );
+ok( ! $r['errors'] && 1 === count( $r['lines'] ) && $mbar === $r['lines'][0]['product_id'] && 3 === count( $r['lines'][0]['data']['components'] ), 'Complete desk bar: one line with its 3 parts' );
+$r = B2BCP_Order_Form::build_lines( $mbarp, $mcfg, array( 'b2bcp_parts_mode' => 'parts', 'b2bcp_parts_chosen' => array( $magnet ), 'b2bcp_people' => array( array( 'name' => 'new name', 'title' => 'New Title' ) ) ) );
+ok( ! $r['errors'] && $magnet === $r['lines'][0]['product_id'] && 'New Name' === $r['lines'][0]['data']['people'][0]['name'], 'Replacement magnet alone with the new name' );
+ok( '12' === wc_get_product( $magnet )->get_price() && b2bcp_company_can_access( $magnet, $bank ), 'Magnet: contract price and accessible as a part' );
+$r = B2BCP_Order_Form::build_lines( $mbarp, $mcfg, array( 'b2bcp_parts_mode' => 'parts', 'b2bcp_parts_chosen' => array( 0 ) ) );
+ok( in_array( 'Choose at least one part.', $r['errors'], true ), 'A name-only part cannot be ordered alone' );
 
 $signp = wc_get_product( $sign );
 $r     = B2BCP_Order_Form::build_lines( $signp, b2bcp_product_config( $sign ), array( 'b2bcp_qty' => array( $a1 => 5, $a2 => 1, $a3 => 0 ) ) );
-ok( false !== strpos( implode( ' ', $r['errors'] ), 'minimum per branch is 2' ), 'Min per branch enforced' );
+ok( false !== strpos( implode( ' ', $r['errors'] ), 'minimum per address is 2' ), 'Min per branch enforced' );
 $r = B2BCP_Order_Form::build_lines( $signp, b2bcp_product_config( $sign ), array( 'b2bcp_qty' => array( $a1 => 5, $a2 => 3, $a3 => 0 ) ) );
 ok( ! $r['errors'] && 2 === count( $r['lines'] ) && 5 === $r['lines'][0]['qty'], 'Multi-address quantities per branch' );
 
@@ -281,7 +299,7 @@ $expected = 95 * 2 + 40 * 5 + 9 * 4;
 ok( abs( (float) WC()->cart->get_subtotal() - $expected ) < 0.01, "Subtotal uses contract prices: {$expected} vs " . WC()->cart->get_subtotal() );
 $item_data = B2BCP_Order_Form::cart_item_data( array(), $lines[0] );
 $keys      = wp_list_pluck( $item_data, 'key' );
-ok( in_array( 'Ship to', $keys, true ) && in_array( 'Kit includes', $keys, true ) && in_array( 'Person 1', $keys, true ), 'Cart line shows Ship to, Kit includes, Person 1' );
+ok( in_array( 'Ship to', $keys, true ) && in_array( 'Includes', $keys, true ) && in_array( 'Person 1', $keys, true ), 'Cart line shows Ship to, Kit includes, Person 1' );
 echo '     ' . implode( "\n     ", array_map( function ( $r ) { return $r['key'] . ': ' . $r['value']; }, $item_data ) ) . "\n";
 $locked = B2BCP_Order_Form::lock_quantity( '<input>', $lines[0]['key'], $lines[0] );
 ok( false !== strpos( $locked, 'b2bcp-fixed-qty' ), 'Per-person line quantity is locked in the cart' );
@@ -387,8 +405,8 @@ echo '     ' . implode( ' | ', $header ) . "\n";
 foreach ( $rows as $row ) {
 	echo '     ' . implode( ' | ', $row ) . "\n";
 }
-// 2 people × 3 kit pieces = 6 rows, sign 2 rows, mug 1 row.
-ok( 9 === count( $rows ), '9 production rows (6 kit pieces for 2 people, 2 sign branches, 1 mug): ' . count( $rows ) );
+// 2 people × 3 parts = 6 rows, sign 2 rows, mug 1 row.
+ok( 9 === count( $rows ), '9 production rows (3 parts × 2 people, 2 sign addresses, 1 mug): ' . count( $rows ) );
 ok( in_array( 'Name', $header, true ) && in_array( 'Color', $header, true ), 'Header has the personalization columns' );
 $plate_row = null;
 foreach ( $rows as $row ) {
@@ -461,4 +479,4 @@ ok( '#111111' === b2bcp_text_on( '#ffd500' ), 'Dark text on yellow' );
 ok( '#aabbcc' === b2bcp_sanitize_hex( '#ABC' ), 'Short hex expanded' );
 
 echo "\nRESULT: {$GLOBALS['passes']} passed, {$GLOBALS['fails']} failed\n";
-update_option( 'b2bcp_test_ids', compact( 'bank', 'coop', 'kit', 'sign', 'mug', 'secret', 'quote', 'badge', 'deskbar', 'plate', 'order_id', 'a1', 'a2', 'a3' ) + array( 'ana' => $ana->ID ) );
+update_option( 'b2bcp_test_ids', compact( 'bank', 'coop', 'kit', 'mbar', 'magnet', 'sign', 'mug', 'secret', 'quote', 'badge', 'deskbar', 'plate', 'order_id', 'a1', 'a2', 'a3' ) + array( 'ana' => $ana->ID ) );

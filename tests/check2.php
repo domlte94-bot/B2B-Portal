@@ -11,7 +11,7 @@ if ($who === 'guest') {
 } elseif ($who === 'bank') {
   update_user_meta($ana,'_b2bcp_active_company',$bank); wp_set_current_user($ana);
   $q = new WP_Query(array('post_type'=>'product','posts_per_page'=>-1,'fields'=>'ids'));
-  ok(in_array($kit,$q->posts,true) && in_array($badge,$q->posts,true) && !in_array($secret,$q->posts,true), 'Bank shop: kit and pieces visible, other bank plaque hidden');
+  ok(in_array($kit,$q->posts,true) && in_array($badge,$q->posts,true) && !in_array($secret,$q->posts,true), 'Bank shop: kit and its parts visible, other bank plaque hidden');
   $s = new WP_Query(array('s'=>'Plaque','post_type'=>'product','fields'=>'ids'));
   ok(!in_array($secret,$s->posts,true), 'Bank search cannot find the other company\'s product');
   $gw = WC()->payment_gateways()->get_available_payment_gateways();

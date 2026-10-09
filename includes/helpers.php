@@ -90,6 +90,7 @@ function b2bcp_get_company( $company_id ) {
 		'payment'           => in_array( $payment, array( 'card', 'invoice', 'both' ), true ) ? $payment : 'card',
 		'terms'             => (string) get_post_meta( $company_id, '_b2bcp_terms', true ),
 		'shipping_included' => 'yes' === get_post_meta( $company_id, '_b2bcp_shipping_included', true ),
+		'buyers_add_addresses' => 'no' !== get_post_meta( $company_id, '_b2bcp_buyers_add_addresses', true ),
 		'notify_email'      => (string) get_post_meta( $company_id, '_b2bcp_notify_email', true ),
 		'logo_id'           => (int) get_post_meta( $company_id, '_b2bcp_logo_id', true ),
 		'color'             => $color,
@@ -192,6 +193,25 @@ function b2bcp_set_company_admin( $user_id, $company_id, $is_admin ) {
 		$ids[] = (int) $company_id;
 	}
 	update_user_meta( $user_id, '_b2bcp_company_admin', array_values( $ids ) );
+}
+
+/**
+ * Whether a user may add (and edit) shipping addresses for a company:
+ * company admins always; other users unless the store turned it off for that company.
+ *
+ * @param int $user_id    User id.
+ * @param int $company_id Company id.
+ * @return bool
+ */
+function b2bcp_user_can_add_address( $user_id, $company_id ) {
+	if ( ! $user_id || ! in_array( (int) $company_id, b2bcp_user_companies( $user_id ), true ) ) {
+		return false;
+	}
+	if ( b2bcp_user_is_company_admin( $user_id, $company_id ) ) {
+		return true;
+	}
+	$company = b2bcp_get_company( $company_id );
+	return $company && $company['buyers_add_addresses'];
 }
 
 /**
@@ -350,25 +370,66 @@ function b2bcp_product_config( $product ) {
 
 	$fields       = get_post_meta( $id, '_b2bcp_fields', true );
 	$quote_fields = get_post_meta( $id, '_b2bcp_quote_fields', true );
-	$kit_items    = get_post_meta( $id, '_b2bcp_kit_items', true );
 	$visibility   = get_post_meta( $id, '_b2bcp_visibility', true );
+	$has_parts    = 'yes' === get_post_meta( $id, '_b2bcp_has_parts', true );
+	$parts        = $has_parts ? b2bcp_normalize_parts( get_post_meta( $id, '_b2bcp_parts', true ), $id ) : array();
 
 	$config = array(
-		'id'                => $id,
-		'visibility'        => 'restricted' === $visibility ? 'restricted' : 'public',
-		'personalized'      => 'yes' === get_post_meta( $id, '_b2bcp_personalized', true ),
-		'fields'            => is_array( $fields ) ? $fields : array(),
-		'multiaddress'      => 'yes' === get_post_meta( $id, '_b2bcp_multiaddress', true ),
-		'min_per_address'   => max( 0, (int) get_post_meta( $id, '_b2bcp_min_per_address', true ) ),
-		'kit'               => 'yes' === get_post_meta( $id, '_b2bcp_kit', true ),
-		'kit_mode'          => 'full_or_pieces' === get_post_meta( $id, '_b2bcp_kit_mode', true ) ? 'full_or_pieces' : 'full',
-		'kit_items'         => is_array( $kit_items ) ? $kit_items : array(),
-		'quote'             => 'yes' === get_post_meta( $id, '_b2bcp_quote', true ),
-		'quote_fields'      => is_array( $quote_fields ) ? $quote_fields : array(),
+		'id'              => $id,
+		'visibility'      => 'restricted' === $visibility ? 'restricted' : 'public',
+		'personalized'    => 'yes' === get_post_meta( $id, '_b2bcp_personalized', true ),
+		'fields'          => is_array( $fields ) ? $fields : array(),
+		'multiaddress'    => 'yes' === get_post_meta( $id, '_b2bcp_multiaddress', true ),
+		'min_per_address' => max( 0, (int) get_post_meta( $id, '_b2bcp_min_per_address', true ) ),
+		'has_parts'       => $has_parts && (bool) $parts,
+		'parts'           => $parts,
+		'parts_alone'     => (bool) array_filter( wp_list_pluck( $parts, 'alone' ) ),
+		'quote'           => 'yes' === get_post_meta( $id, '_b2bcp_quote', true ),
+		'quote_fields'    => is_array( $quote_fields ) ? $quote_fields : array(),
 	);
 
 	$cache[ $key ] = $config;
 	return $config;
+}
+
+/**
+ * Clean the stored parts list.
+ * A part is either a store product (can be ordered alone) or just a name (production only).
+ *
+ * @param mixed $raw       Stored value.
+ * @param int   $parent_id The product the parts belong to.
+ * @return array[] Each: product_id (0 = name only), name, qty, alone.
+ */
+function b2bcp_normalize_parts( $raw, $parent_id = 0 ) {
+	$out = array();
+	foreach ( (array) $raw as $part ) {
+		if ( ! is_array( $part ) ) {
+			continue;
+		}
+		$product_id = (int) ( $part['product_id'] ?? 0 );
+		if ( $product_id && $product_id === (int) $parent_id ) {
+			$product_id = 0;
+		}
+		$name = trim( (string) ( $part['name'] ?? '' ) );
+		if ( $product_id ) {
+			$product = wc_get_product( $product_id );
+			if ( ! $product ) {
+				$product_id = 0;
+			} elseif ( '' === $name ) {
+				$name = $product->get_name();
+			}
+		}
+		if ( '' === $name ) {
+			continue;
+		}
+		$out[] = array(
+			'product_id' => $product_id,
+			'name'       => $name,
+			'qty'        => max( 1, (int) ( $part['qty'] ?? 1 ) ),
+			'alone'      => $product_id && ! empty( $part['alone'] ),
+		);
+	}
+	return $out;
 }
 
 /**
@@ -378,32 +439,29 @@ function b2bcp_product_config( $product ) {
  * @return bool
  */
 function b2bcp_uses_order_form( array $config ) {
-	return ! $config['quote'] && ( $config['personalized'] || $config['multiaddress'] || $config['kit'] || b2bcp_kit_is_personalized( $config ) );
+	return ! $config['quote'] && ( $config['personalized'] || $config['multiaddress'] || $config['has_parts'] );
 }
 
 /**
- * Whether any piece of a kit is personalized.
+ * Personalization field keys that go on one part (for the production sheet).
+ * A part that is its own product uses that product's fields; a name-only part
+ * uses the main product's fields.
  *
- * @param array $config Kit config.
- * @return bool
+ * @param array $part   Part.
+ * @param array $config Main product config.
+ * @return array[] Field definitions.
  */
-function b2bcp_kit_is_personalized( array $config ) {
-	if ( ! $config['kit'] ) {
-		return false;
+function b2bcp_part_fields( array $part, array $config ) {
+	if ( $part['product_id'] ) {
+		$piece = b2bcp_product_config( (int) $part['product_id'] );
+		return $piece['personalized'] ? $piece['fields'] : array();
 	}
-	foreach ( $config['kit_items'] as $item ) {
-		$piece = b2bcp_product_config( (int) $item['product_id'] );
-		if ( $piece['personalized'] && $piece['fields'] ) {
-			return true;
-		}
-	}
-	return false;
+	return $config['personalized'] ? $config['fields'] : array();
 }
 
 /**
- * Personalization fields shown when ordering a product.
- * For a kit: the kit's own fields plus every piece's fields, merged by key,
- * so a name typed once fills every piece that uses "name".
+ * Personalization fields shown when ordering a product: its own fields plus
+ * every part's fields, merged by key, so a name typed once fills every part.
  *
  * @param array $config Product config.
  * @return array
@@ -415,16 +473,10 @@ function b2bcp_person_fields( array $config ) {
 			$fields[ $field['key'] ] = $field;
 		}
 	}
-	if ( $config['kit'] ) {
-		foreach ( $config['kit_items'] as $item ) {
-			$piece = b2bcp_product_config( (int) $item['product_id'] );
-			if ( ! $piece['personalized'] ) {
-				continue;
-			}
-			foreach ( $piece['fields'] as $field ) {
-				if ( ! isset( $fields[ $field['key'] ] ) ) {
-					$fields[ $field['key'] ] = $field;
-				}
+	foreach ( $config['parts'] as $part ) {
+		foreach ( b2bcp_part_fields( $part, $config ) as $field ) {
+			if ( ! isset( $fields[ $field['key'] ] ) ) {
+				$fields[ $field['key'] ] = $field;
 			}
 		}
 	}
@@ -433,8 +485,8 @@ function b2bcp_person_fields( array $config ) {
 
 /**
  * Whether a company may see and buy a product.
- * Public products: everyone. Restricted: companies it is assigned to,
- * plus pieces of a kit assigned to that company.
+ * Public products: everyone. Restricted: companies it is assigned to, plus
+ * parts that can be ordered alone from a product assigned to that company.
  *
  * @param int $product_id Product id (parent id for variations).
  * @param int $company_id Company id (0 = guest / no company).
@@ -453,12 +505,10 @@ function b2bcp_company_can_access( $product_id, $company_id ) {
 		return true;
 	}
 	foreach ( array_keys( $assigned ) as $assigned_id ) {
-		$kit = b2bcp_product_config( $assigned_id );
-		if ( $kit['kit'] && 'full_or_pieces' === $kit['kit_mode'] ) {
-			foreach ( $kit['kit_items'] as $item ) {
-				if ( (int) $item['product_id'] === (int) $product_id ) {
-					return true;
-				}
+		$main = b2bcp_product_config( $assigned_id );
+		foreach ( $main['parts'] as $part ) {
+			if ( $part['alone'] && (int) $part['product_id'] === (int) $product_id ) {
+				return true;
 			}
 		}
 	}
@@ -510,8 +560,8 @@ function b2bcp_hidden_product_ids( $company_id ) {
  */
 function b2bcp_address_keys() {
 	return array(
-		'label'     => __( 'Branch name', 'b2b-contract-portal' ),
-		'code'      => __( 'Branch #', 'b2b-contract-portal' ),
+		'label'     => __( 'Name (branch, office, person)', 'b2b-contract-portal' ),
+		'code'      => __( 'Number / code', 'b2b-contract-portal' ),
 		'attention' => __( 'Attention', 'b2b-contract-portal' ),
 		'address_1' => __( 'Address', 'b2b-contract-portal' ),
 		'address_2' => __( 'Address 2', 'b2b-contract-portal' ),

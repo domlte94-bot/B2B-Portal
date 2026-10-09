@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Per-product settings: visibility, company prices, personalization, kits, multi-address, quotes.
+ * Per-product settings: visibility, company prices, personalization, parts, multi-address, quotes.
  */
 class B2BCP_Product_Admin {
 
@@ -93,28 +93,46 @@ class B2BCP_Product_Admin {
 				<p class="b2bcp-row"><label class="b2bcp-toggle"><input type="checkbox" name="b2bcp_personalized" value="yes" data-b2bcp-toggle="#b2bcp-personal" <?php checked( $config['personalized'] ); ?>> <strong><?php esc_html_e( 'Personalized (custom)', 'b2b-contract-portal' ); ?></strong> &mdash; <?php esc_html_e( 'buyers add one row per person (name, title…); each row is one unit', 'b2b-contract-portal' ); ?></label></p>
 				<div class="b2bcp-inner" id="b2bcp-personal">
 					<?php B2BCP_Fields::render_builder( 'b2bcp_fields', $config['fields'], 'person' ); ?>
-					<p class="description"><?php esc_html_e( 'Fields with the same label (e.g. "Name") are shared across the pieces of a kit, so buyers type each name once.', 'b2b-contract-portal' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Fields with the same label (e.g. "Name") are shared with this product\'s parts, so buyers type each name once.', 'b2b-contract-portal' ); ?></p>
 				</div>
 
-				<p class="b2bcp-row"><label class="b2bcp-toggle"><input type="checkbox" name="b2bcp_kit" value="yes" data-b2bcp-toggle="#b2bcp-kit" <?php checked( $config['kit'] ); ?>> <strong><?php esc_html_e( 'Kit', 'b2b-contract-portal' ); ?></strong> &mdash; <?php esc_html_e( 'this product groups several pieces', 'b2b-contract-portal' ); ?></label></p>
-				<div class="b2bcp-inner" id="b2bcp-kit">
-					<table class="widefat b2bcp-repeater" data-name="b2bcp_kit_items">
-						<thead><tr><th><?php esc_html_e( 'Piece (product)', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Qty in kit', 'b2b-contract-portal' ); ?></th><th></th></tr></thead>
+				<p class="b2bcp-row"><label class="b2bcp-toggle"><input type="checkbox" name="b2bcp_has_parts" value="yes" data-b2bcp-toggle="#b2bcp-parts" <?php checked( $config['has_parts'] ); ?>> <strong><?php esc_html_e( 'This product has parts', 'b2b-contract-portal' ); ?></strong> &mdash; <?php esc_html_e( 'e.g. a desk bar = base + name magnet, or a welcome pack = badge + desk bar + door plate', 'b2b-contract-portal' ); ?></label></p>
+				<div class="b2bcp-inner" id="b2bcp-parts">
+					<table class="widefat b2bcp-repeater b2bcp-parts" data-name="b2bcp_parts">
+						<thead><tr>
+							<th><?php esc_html_e( 'Part', 'b2b-contract-portal' ); ?></th>
+							<th><?php esc_html_e( 'Store product (optional)', 'b2b-contract-portal' ); ?></th>
+							<th><?php esc_html_e( 'Qty', 'b2b-contract-portal' ); ?></th>
+							<th><?php esc_html_e( 'Can be ordered alone', 'b2b-contract-portal' ); ?></th>
+							<th></th>
+						</tr></thead>
 						<tbody>
 							<?php
-							foreach ( $config['kit_items'] as $i => $item ) {
-								self::kit_row( (string) $i, (int) $item['product_id'], (int) $item['qty'] );
+							foreach ( $config['parts'] as $i => $part ) {
+								self::part_row( (string) $i, $part );
 							}
 							?>
 						</tbody>
-						<tfoot><tr><td colspan="3"><button type="button" class="button b2bcp-add-row"><?php esc_html_e( '+ Add piece', 'b2b-contract-portal' ); ?></button></td></tr></tfoot>
+						<tfoot><tr><td colspan="5"><button type="button" class="button b2bcp-add-row"><?php esc_html_e( '+ Add part', 'b2b-contract-portal' ); ?></button></td></tr></tfoot>
 					</table>
-					<script type="text/html" class="b2bcp-row-template"><?php self::kit_row( '__i__', 0, 1 ); ?></script>
-					<p class="b2bcp-kit-mode">
-						<label><input type="radio" name="b2bcp_kit_mode" value="full" <?php checked( $config['kit_mode'], 'full' ); ?>> <?php esc_html_e( 'Full kit only', 'b2b-contract-portal' ); ?></label>
-						<label><input type="radio" name="b2bcp_kit_mode" value="full_or_pieces" <?php checked( $config['kit_mode'], 'full_or_pieces' ); ?>> <?php esc_html_e( 'Full kit or loose pieces', 'b2b-contract-portal' ); ?></label>
-					</p>
-					<p class="description"><?php esc_html_e( 'Full kit price = this product\'s price (or the company\'s contract price for it). Loose pieces are charged at each piece\'s own price, so give pieces their contract prices too. Each piece\'s personalization comes from that piece\'s own settings.', 'b2b-contract-portal' ); ?></p>
+					<script type="text/html" class="b2bcp-row-template">
+						<?php
+						self::part_row(
+							'__i__',
+							array(
+								'product_id' => 0,
+								'name'       => '',
+								'qty'        => 1,
+								'alone'      => false,
+							)
+						);
+						?>
+					</script>
+					<ul class="description">
+						<li><?php esc_html_e( 'Name only (e.g. "Base"): the part is for production and appears on the production sheet with this product\'s personalization.', 'b2b-contract-portal' ); ?></li>
+						<li><?php esc_html_e( 'Linked to a store product (e.g. the name magnet): it can also be ordered alone as a replacement, at that product\'s price (give it contract prices too). Its personalization comes from that product. You can hide it from the shop in its Catalog visibility.', 'b2b-contract-portal' ); ?></li>
+						<li><?php esc_html_e( 'The complete product is charged at this product\'s price.', 'b2b-contract-portal' ); ?></li>
+					</ul>
 				</div>
 
 				<p class="b2bcp-row"><label class="b2bcp-toggle"><input type="checkbox" name="b2bcp_multiaddress" value="yes" data-b2bcp-toggle="#b2bcp-multi" <?php checked( $config['multiaddress'] ); ?>> <strong><?php esc_html_e( 'Ship to several addresses', 'b2b-contract-portal' ); ?></strong> &mdash; <?php esc_html_e( 'buyers split quantities across their company\'s branches in one order and one invoice', 'b2b-contract-portal' ); ?></label></p>
@@ -162,25 +180,26 @@ class B2BCP_Product_Admin {
 	}
 
 	/**
-	 * Kit piece row.
+	 * Part row.
 	 *
-	 * @param string $i          Index.
-	 * @param int    $product_id Piece.
-	 * @param int    $qty        Qty in kit.
+	 * @param string $i    Index.
+	 * @param array  $part Part.
 	 */
-	private static function kit_row( $i, $product_id, $qty ) {
-		$base    = 'b2bcp_kit_items[' . $i . ']';
-		$product = $product_id ? wc_get_product( $product_id ) : null;
+	private static function part_row( $i, array $part ) {
+		$base    = 'b2bcp_parts[' . $i . ']';
+		$product = $part['product_id'] ? wc_get_product( (int) $part['product_id'] ) : null;
 		?>
 		<tr>
-			<td style="width:70%">
-				<select class="wc-product-search" style="width:100%" name="<?php echo esc_attr( $base ); ?>[product_id]" data-placeholder="<?php esc_attr_e( 'Search for a product…', 'b2b-contract-portal' ); ?>" data-action="woocommerce_json_search_products" data-allow_clear="true">
+			<td><input type="text" name="<?php echo esc_attr( $base ); ?>[name]" value="<?php echo esc_attr( $part['name'] ); ?>" placeholder="<?php esc_attr_e( 'e.g. Base', 'b2b-contract-portal' ); ?>"></td>
+			<td style="width:40%">
+				<select class="wc-product-search" style="width:100%" name="<?php echo esc_attr( $base ); ?>[product_id]" data-placeholder="<?php esc_attr_e( 'None (production only)', 'b2b-contract-portal' ); ?>" data-action="woocommerce_json_search_products" data-allow_clear="true">
 					<?php if ( $product ) : ?>
-						<option value="<?php echo (int) $product_id; ?>" selected><?php echo esc_html( wp_strip_all_tags( $product->get_formatted_name() ) ); ?></option>
+						<option value="<?php echo (int) $product->get_id(); ?>" selected><?php echo esc_html( wp_strip_all_tags( $product->get_formatted_name() ) ); ?></option>
 					<?php endif; ?>
 				</select>
 			</td>
-			<td><input type="number" min="1" class="small-text" name="<?php echo esc_attr( $base ); ?>[qty]" value="<?php echo (int) max( 1, $qty ); ?>"></td>
+			<td><input type="number" min="1" class="small-text" name="<?php echo esc_attr( $base ); ?>[qty]" value="<?php echo (int) max( 1, $part['qty'] ); ?>"></td>
+			<td><input type="checkbox" name="<?php echo esc_attr( $base ); ?>[alone]" value="1" <?php checked( $part['alone'] ); ?> aria-label="<?php esc_attr_e( 'Can be ordered alone', 'b2b-contract-portal' ); ?>"></td>
 			<td><button type="button" class="button-link b2bcp-remove-row" aria-label="<?php esc_attr_e( 'Remove', 'b2b-contract-portal' ); ?>">&times;</button></td>
 		</tr>
 		<?php
@@ -203,22 +222,23 @@ class B2BCP_Product_Admin {
 		$product->update_meta_data( '_b2bcp_fields', B2BCP_Fields::sanitize_definitions( $_POST['b2bcp_fields'] ?? array(), 'person' ) );
 		$product->update_meta_data( '_b2bcp_multiaddress', isset( $_POST['b2bcp_multiaddress'] ) ? 'yes' : 'no' );
 		$product->update_meta_data( '_b2bcp_min_per_address', absint( $_POST['b2bcp_min_per_address'] ?? 0 ) );
-		$product->update_meta_data( '_b2bcp_kit', isset( $_POST['b2bcp_kit'] ) ? 'yes' : 'no' );
-		$product->update_meta_data( '_b2bcp_kit_mode', isset( $_POST['b2bcp_kit_mode'] ) && 'full_or_pieces' === $_POST['b2bcp_kit_mode'] ? 'full_or_pieces' : 'full' );
+		$product->update_meta_data( '_b2bcp_has_parts', isset( $_POST['b2bcp_has_parts'] ) ? 'yes' : 'no' );
 		$product->update_meta_data( '_b2bcp_quote', isset( $_POST['b2bcp_quote'] ) ? 'yes' : 'no' );
 		$product->update_meta_data( '_b2bcp_quote_fields', B2BCP_Fields::sanitize_definitions( $_POST['b2bcp_quote_fields'] ?? array(), 'quote' ) );
 
-		$items = array();
-		foreach ( (array) ( $_POST['b2bcp_kit_items'] ?? array() ) as $row ) {
-			$piece = absint( $row['product_id'] ?? 0 );
-			if ( $piece && $piece !== $id && wc_get_product( $piece ) ) {
-				$items[] = array(
-					'product_id' => $piece,
-					'qty'        => max( 1, absint( $row['qty'] ?? 1 ) ),
-				);
+		$parts = array();
+		foreach ( (array) ( $_POST['b2bcp_parts'] ?? array() ) as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
 			}
+			$parts[] = array(
+				'product_id' => absint( $row['product_id'] ?? 0 ),
+				'name'       => sanitize_text_field( wp_unslash( $row['name'] ?? '' ) ),
+				'qty'        => absint( $row['qty'] ?? 1 ),
+				'alone'      => ! empty( $row['alone'] ),
+			);
 		}
-		$product->update_meta_data( '_b2bcp_kit_items', $items );
+		$product->update_meta_data( '_b2bcp_parts', b2bcp_normalize_parts( $parts, $id ) );
 
 		if ( isset( $_POST['b2bcp_companies'] ) || isset( $_POST['b2bcp_visibility'] ) ) {
 			$rows = array();
@@ -260,8 +280,9 @@ class B2BCP_Product_Admin {
 			/* translators: %d: number of companies */
 			$tags[] = sprintf( _n( 'Exclusive (%d company)', 'Exclusive (%d companies)', count( b2bcp_product_assignments( $post_id ) ), 'b2b-contract-portal' ), count( b2bcp_product_assignments( $post_id ) ) );
 		}
-		if ( $config['kit'] ) {
-			$tags[] = __( 'Kit', 'b2b-contract-portal' );
+		if ( $config['has_parts'] ) {
+			/* translators: %d: number of parts */
+			$tags[] = sprintf( _n( '%d part', '%d parts', count( $config['parts'] ), 'b2b-contract-portal' ), count( $config['parts'] ) );
 		}
 		if ( $config['personalized'] ) {
 			$tags[] = __( 'Personalized', 'b2b-contract-portal' );

@@ -165,6 +165,8 @@ class B2BCP_Company_Admin {
 
 				<h4><?php esc_html_e( 'Shipping and notifications', 'b2b-contract-portal' ); ?></h4>
 				<p><label><input type="checkbox" name="b2bcp[shipping_included]" value="yes" <?php checked( $company && $company['shipping_included'] ); ?>> <?php esc_html_e( 'Shipping included in contract (shipping shows as $0)', 'b2b-contract-portal' ); ?></label></p>
+				<p><label><input type="checkbox" name="b2bcp[buyers_add_addresses]" value="yes" <?php checked( ! $company || $company['buyers_add_addresses'] ); ?>> <?php esc_html_e( 'Buyers can add new shipping addresses (from their account and while ordering)', 'b2b-contract-portal' ); ?></label><br>
+				<span class="description"><?php esc_html_e( 'Turn off to allow only addresses added by you or by the company admin.', 'b2b-contract-portal' ); ?></span></p>
 				<p><label><?php esc_html_e( 'Extra email for new orders from this company', 'b2b-contract-portal' ); ?><br><input type="text" class="widefat" name="b2bcp[notify_email]" placeholder="cs@yourshop.com" value="<?php echo esc_attr( get_post_meta( $post->ID, '_b2bcp_notify_email', true ) ); ?>"></label>
 				<span class="description"><?php esc_html_e( 'Comma separated. Gets the "New order" email in addition to the store\'s usual recipients.', 'b2b-contract-portal' ); ?></span></p>
 			</div>
@@ -242,7 +244,7 @@ class B2BCP_Company_Admin {
 	public static function box_branches( $post ) {
 		$keys = b2bcp_address_keys();
 		?>
-		<p class="description"><?php esc_html_e( 'Locations this company ships to. Buyers pick from this list when splitting an order across addresses. Company admins can also manage it from their account.', 'b2b-contract-portal' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Locations this company ships to. Buyers pick from this list when splitting an order across addresses, and can add new ones themselves unless you turn that off above.', 'b2b-contract-portal' ); ?></p>
 		<div class="b2bcp-scroll">
 		<table class="widefat b2bcp-repeater b2bcp-branches" data-name="b2bcp_branches">
 			<thead><tr>
@@ -366,6 +368,7 @@ class B2BCP_Company_Admin {
 		update_post_meta( $post_id, '_b2bcp_payment', $payment );
 		update_post_meta( $post_id, '_b2bcp_terms', sanitize_text_field( $data['terms'] ?? '' ) );
 		update_post_meta( $post_id, '_b2bcp_shipping_included', isset( $data['shipping_included'] ) ? 'yes' : 'no' );
+		update_post_meta( $post_id, '_b2bcp_buyers_add_addresses', isset( $data['buyers_add_addresses'] ) ? 'yes' : 'no' );
 
 		$emails = array_filter( array_map( 'sanitize_email', array_map( 'trim', explode( ',', (string) ( $data['notify_email'] ?? '' ) ) ) ) );
 		update_post_meta( $post_id, '_b2bcp_notify_email', implode( ', ', $emails ) );

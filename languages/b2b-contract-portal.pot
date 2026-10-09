@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: B2B Contract Portal for WooCommerce 0.1.0\n"
+"Project-Id-Version: B2B Contract Portal for WooCommerce 0.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/b2b-contract-portal\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-09T20:49:18+00:00\n"
+"POT-Creation-Date: 2026-10-09T21:13:50+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: b2b-contract-portal\n"
@@ -21,7 +21,7 @@ msgstr ""
 
 #. Description of the plugin
 #: b2b-contract-portal.php
-msgid "Contract customers for print and promo shops: client companies with exclusive catalogs and contract prices, kits and loose pieces, per-person personalization (names, titles), multi-address shipping on one order, invoice terms, quote requests and production sheets."
+msgid "Contract customers for print and promo shops: client companies with exclusive catalogs and contract prices, products with parts (complete or single parts), per-person personalization (names, titles), multi-address shipping on one order, invoice terms, quote requests and production sheets."
 msgstr ""
 
 #. Author of the plugin
@@ -33,9 +33,9 @@ msgstr ""
 msgid "B2B Contract Portal needs WooCommerce to be installed and active."
 msgstr ""
 
-#: includes/class-account.php:64
-#: includes/class-account.php:69
-#: includes/class-account.php:80
+#: includes/class-account.php:65
+#: includes/class-account.php:70
+#: includes/class-account.php:81
 #: includes/class-emails.php:183
 #: includes/class-export.php:133
 #: includes/class-product-admin.php:71
@@ -44,142 +44,150 @@ msgstr ""
 msgid "Company"
 msgstr ""
 
-#: includes/class-account.php:91
+#: includes/class-account.php:92
 msgid "Your account is not linked to a company."
 msgstr ""
 
-#: includes/class-account.php:102
-#: includes/class-company-admin.php:541
+#: includes/class-account.php:104
+#: includes/class-company-admin.php:544
 msgid "Card"
 msgstr ""
 
-#: includes/class-account.php:103
-#: includes/class-company-admin.php:542
+#: includes/class-account.php:105
+#: includes/class-company-admin.php:545
 #: includes/class-gateway-invoice-blocks.php:66
 #: includes/class-payments.php:29
 #: includes/class-payments.php:50
 msgid "Invoice"
 msgstr ""
 
-#: includes/class-account.php:104
+#: includes/class-account.php:106
 msgid "Card or invoice"
 msgstr ""
 
-#: includes/class-account.php:111
+#: includes/class-account.php:113
 msgid "You are ordering for"
 msgstr ""
 
-#: includes/class-account.php:117
+#: includes/class-account.php:119
 msgid "Switch"
 msgstr ""
 
-#: includes/class-account.php:119
+#: includes/class-account.php:121
 msgid "Your cart, catalog and prices follow the company you choose."
 msgstr ""
 
-#: includes/class-account.php:128
+#: includes/class-account.php:130
 #: includes/class-company-admin.php:158
-#: includes/class-company-admin.php:517
+#: includes/class-company-admin.php:520
 msgid "Payment"
 msgstr ""
 
-#: includes/class-account.php:130
+#: includes/class-account.php:132
 msgid "Shipping"
 msgstr ""
 
-#: includes/class-account.php:130
+#: includes/class-account.php:132
 msgid "Included in your contract"
 msgstr ""
 
-#: includes/class-account.php:133
+#: includes/class-account.php:135
 #: includes/class-company-admin.php:153
 msgid "Main contact"
 msgstr ""
 
-#: includes/class-account.php:137
-#: includes/class-company-admin.php:516
-msgid "Branches"
+#: includes/class-account.php:139
+msgid "Shipping addresses"
 msgstr ""
 
-#: includes/class-account.php:141
-#: includes/class-order-form.php:183
-msgid "Branch"
+#: includes/class-account.php:143
+#: includes/class-company-admin.php:154
+#: includes/class-emails.php:182
+#: includes/class-quotes.php:386
+msgid "Name"
 msgstr ""
 
-#: includes/class-account.php:141
+#: includes/class-account.php:143
 #: includes/class-export.php:135
-#: includes/class-order-form.php:183
-#: includes/helpers.php:516
+#: includes/class-order-form.php:190
+#: includes/helpers.php:566
 msgid "Address"
 msgstr ""
 
-#: includes/class-account.php:149
+#: includes/class-account.php:151
 msgid "Edit"
 msgstr ""
 
-#: includes/class-account.php:150
-msgid "Delete this branch?"
+#: includes/class-account.php:153
+msgid "Delete this address?"
 msgstr ""
 
-#: includes/class-account.php:154
+#: includes/class-account.php:157
 msgid "Delete"
 msgstr ""
 
-#: includes/class-account.php:163
-msgid "No branches saved yet."
-msgstr ""
-
 #: includes/class-account.php:167
-msgid "Edit branch"
+msgid "No addresses saved yet."
 msgstr ""
 
-#: includes/class-account.php:167
-msgid "Add a branch"
+#: includes/class-account.php:171
+msgid "Edit address"
 msgstr ""
 
-#: includes/class-account.php:180
-msgid "Save branch"
+#: includes/class-account.php:171
+msgid "Add an address"
 msgstr ""
 
-#: includes/class-account.php:180
-msgid "Add branch"
+#: includes/class-account.php:184
+#: includes/class-order-form.php:227
+msgid "Save address"
 msgstr ""
 
-#: includes/class-account.php:182
+#: includes/class-account.php:184
+msgid "Add address"
+msgstr ""
+
+#: includes/class-account.php:186
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-account.php:187
+#: includes/class-account.php:193
 msgid "People in your company"
 msgstr ""
 
-#: includes/class-account.php:190
+#: includes/class-account.php:196
 msgid "admin"
 msgstr ""
 
-#: includes/class-account.php:193
+#: includes/class-account.php:199
 msgid "To add or remove people, contact the store."
 msgstr ""
 
+#: includes/class-account.php:213
+msgid "You cannot add addresses for this company."
+msgstr ""
+
+#: includes/class-account.php:218
+#: includes/class-account.php:276
+#: includes/class-order-form.php:51
+msgid "Name, address and city are required."
+msgstr ""
+
 #. translators: %s: company
-#: includes/class-account.php:217
+#: includes/class-account.php:249
 msgid "You are now ordering for %s."
 msgstr ""
 
-#: includes/class-account.php:238
-msgid "Branch deleted."
+#: includes/class-account.php:271
+msgid "Address deleted."
 msgstr ""
 
-#: includes/class-account.php:243
-msgid "Branch name, address and city are required."
+#: includes/class-account.php:280
+msgid "Address updated."
 msgstr ""
 
-#: includes/class-account.php:247
-msgid "Branch updated."
-msgstr ""
-
-#: includes/class-account.php:247
-msgid "Branch added."
+#: includes/class-account.php:280
+msgid "Address added."
 msgstr ""
 
 #: includes/class-branding.php:100
@@ -261,7 +269,7 @@ msgid "Branches / shipping addresses"
 msgstr ""
 
 #: includes/class-company-admin.php:136
-#: includes/class-company-admin.php:515
+#: includes/class-company-admin.php:518
 msgid "Users"
 msgstr ""
 
@@ -269,15 +277,9 @@ msgstr ""
 msgid "Company branding"
 msgstr ""
 
-#: includes/class-company-admin.php:154
-#: includes/class-emails.php:182
-#: includes/class-quotes.php:386
-msgid "Name"
-msgstr ""
-
 #: includes/class-company-admin.php:155
-#: includes/class-company-admin.php:296
-#: includes/class-company-admin.php:315
+#: includes/class-company-admin.php:298
+#: includes/class-company-admin.php:317
 #: includes/class-emails.php:184
 #: includes/class-quotes.php:209
 #: includes/class-quotes.php:388
@@ -289,7 +291,7 @@ msgstr ""
 #: includes/class-emails.php:185
 #: includes/class-quotes.php:210
 #: includes/class-quotes.php:389
-#: includes/helpers.php:522
+#: includes/helpers.php:572
 msgid "Phone"
 msgstr ""
 
@@ -318,151 +320,162 @@ msgid "Shipping included in contract (shipping shows as $0)"
 msgstr ""
 
 #: includes/class-company-admin.php:168
-msgid "Extra email for new orders from this company"
+msgid "Buyers can add new shipping addresses (from their account and while ordering)"
 msgstr ""
 
 #: includes/class-company-admin.php:169
+msgid "Turn off to allow only addresses added by you or by the company admin."
+msgstr ""
+
+#: includes/class-company-admin.php:170
+msgid "Extra email for new orders from this company"
+msgstr ""
+
+#: includes/class-company-admin.php:171
 msgid "Comma separated. Gets the \"New order\" email in addition to the store's usual recipients."
 msgstr ""
 
-#: includes/class-company-admin.php:172
+#: includes/class-company-admin.php:174
 msgid "Fixed billing address"
 msgstr ""
 
-#: includes/class-company-admin.php:173
+#: includes/class-company-admin.php:175
 msgid "Fill this to lock checkout billing to these values for every order from this company. Leave empty to let buyers type their own."
 msgstr ""
 
-#: includes/class-company-admin.php:190
+#: includes/class-company-admin.php:192
 msgid "Products this company can order. Restricted products are only visible to companies listed here. Leave the price empty to use the product's normal price."
 msgstr ""
 
-#: includes/class-company-admin.php:192
+#: includes/class-company-admin.php:194
 #: includes/class-emails.php:181
 #: includes/class-export.php:137
 #: includes/class-quotes.php:385
 msgid "Product"
 msgstr ""
 
-#: includes/class-company-admin.php:192
+#: includes/class-company-admin.php:194
 msgid "Visibility"
 msgstr ""
 
-#: includes/class-company-admin.php:192
+#: includes/class-company-admin.php:194
 msgid "Regular price"
 msgstr ""
 
-#: includes/class-company-admin.php:192
+#: includes/class-company-admin.php:194
 #: includes/class-product-admin.php:71
 msgid "Contract price"
 msgstr ""
 
-#: includes/class-company-admin.php:205
+#: includes/class-company-admin.php:207
 msgid "+ Add product"
 msgstr ""
 
-#: includes/class-company-admin.php:223
-#: includes/class-product-admin.php:177
+#: includes/class-company-admin.php:225
 msgid "Search for a product…"
 msgstr ""
 
-#: includes/class-company-admin.php:229
+#: includes/class-company-admin.php:231
 msgid "Exclusive"
 msgstr ""
 
-#: includes/class-company-admin.php:229
+#: includes/class-company-admin.php:231
 msgid "Public"
 msgstr ""
 
-#: includes/class-company-admin.php:231
-#: includes/class-product-admin.php:158
+#: includes/class-company-admin.php:233
+#: includes/class-product-admin.php:176
 msgid "Regular"
 msgstr ""
 
-#: includes/class-company-admin.php:232
-#: includes/class-company-admin.php:282
-#: includes/class-company-admin.php:338
-#: includes/class-product-admin.php:159
-#: includes/class-product-admin.php:184
+#: includes/class-company-admin.php:234
+#: includes/class-company-admin.php:284
+#: includes/class-company-admin.php:340
+#: includes/class-product-admin.php:177
+#: includes/class-product-admin.php:203
 msgid "Remove"
 msgstr ""
 
-#: includes/class-company-admin.php:245
-msgid "Locations this company ships to. Buyers pick from this list when splitting an order across addresses. Company admins can also manage it from their account."
+#: includes/class-company-admin.php:247
+msgid "Locations this company ships to. Buyers pick from this list when splitting an order across addresses, and can add new ones themselves unless you turn that off above."
 msgstr ""
 
-#: includes/class-company-admin.php:261
+#: includes/class-company-admin.php:263
 msgid "+ Add branch"
 msgstr ""
 
-#: includes/class-company-admin.php:296
+#: includes/class-company-admin.php:298
 msgid "User"
 msgstr ""
 
-#: includes/class-company-admin.php:296
-#: includes/class-company-admin.php:318
+#: includes/class-company-admin.php:298
+#: includes/class-company-admin.php:320
 msgid "Company admin"
 msgstr ""
 
-#: includes/class-company-admin.php:296
+#: includes/class-company-admin.php:298
 msgid "Remove from company"
 msgstr ""
 
-#: includes/class-company-admin.php:309
+#: includes/class-company-admin.php:311
 msgid "No users yet."
 msgstr ""
 
-#: includes/class-company-admin.php:312
+#: includes/class-company-admin.php:314
 msgid "Invite a user"
 msgstr ""
 
-#: includes/class-company-admin.php:313
+#: includes/class-company-admin.php:315
 msgid "Only invited users can order for this company. New people get an email to set their password; existing customers are linked and notified. One person can belong to several companies."
 msgstr ""
 
-#: includes/class-company-admin.php:316
+#: includes/class-company-admin.php:318
 msgid "First name"
 msgstr ""
 
-#: includes/class-company-admin.php:317
+#: includes/class-company-admin.php:319
 msgid "Last name"
 msgstr ""
 
-#: includes/class-company-admin.php:320
+#: includes/class-company-admin.php:322
 msgid "The invitation is sent when you click Update / Publish."
 msgstr ""
 
-#: includes/class-company-admin.php:337
+#: includes/class-company-admin.php:339
 msgid "Choose logo"
 msgstr ""
 
-#: includes/class-company-admin.php:340
+#: includes/class-company-admin.php:342
 msgid "Accent color"
 msgstr ""
 
-#: includes/class-company-admin.php:341
+#: includes/class-company-admin.php:343
 msgid "Shown to this company's users on their catalog header, buttons and accents, and in their order emails. The rest of the store keeps its design. Text on the color switches to black or white automatically so it stays readable."
 msgstr ""
 
-#: includes/class-company-admin.php:439
+#: includes/class-company-admin.php:442
 msgid "Publish the company before inviting users."
 msgstr ""
 
 #. translators: %s: email
-#: includes/class-company-admin.php:487
+#: includes/class-company-admin.php:490
 msgid "Invitation sent to %s. They will set their password from the email."
 msgstr ""
 
 #. translators: %s: email
-#: includes/class-company-admin.php:489
+#: includes/class-company-admin.php:492
 msgid "%s already had an account; they were added to this company and notified."
 msgstr ""
 
-#: includes/class-company-admin.php:514
+#: includes/class-company-admin.php:517
 msgid "Products"
 msgstr ""
 
-#: includes/class-company-admin.php:543
+#: includes/class-company-admin.php:519
+msgid "Branches"
+msgstr ""
+
+#: includes/class-company-admin.php:546
 msgid "Card + invoice"
 msgstr ""
 
@@ -545,7 +558,7 @@ msgid "Download CSV"
 msgstr ""
 
 #: includes/class-export.php:53
-msgid "One row per piece and person, with its branch. Opens in Excel or Google Sheets."
+msgid "One row per part and person, with its branch. Opens in Excel or Google Sheets."
 msgstr ""
 
 #: includes/class-export.php:63
@@ -575,16 +588,16 @@ msgid "Status"
 msgstr ""
 
 #: includes/class-export.php:134
-#: includes/class-order-form.php:243
-#: includes/class-order-form.php:579
+#: includes/class-order-form.php:190
+#: includes/class-order-form.php:266
+#: includes/class-order-form.php:592
 #: includes/class-shipping.php:144
 msgid "Ship to"
 msgstr ""
 
 #: includes/class-export.php:136
-#: includes/class-product-admin.php:99
-#: includes/class-product-admin.php:264
-msgid "Kit"
+#: includes/class-order-form.php:611
+msgid "Part of"
 msgstr ""
 
 #: includes/class-export.php:138
@@ -592,7 +605,8 @@ msgid "SKU"
 msgstr ""
 
 #: includes/class-export.php:139
-#: includes/class-order-form.php:183
+#: includes/class-order-form.php:190
+#: includes/class-product-admin.php:105
 msgid "Qty"
 msgstr ""
 
@@ -722,157 +736,166 @@ msgstr ""
 msgid "Person"
 msgstr ""
 
-#: includes/class-order-form.php:70
+#: includes/class-order-form.php:49
+msgid "Saving…"
+msgstr ""
+
+#: includes/class-order-form.php:50
+msgid "Saved. It is now in the address lists."
+msgstr ""
+
+#: includes/class-order-form.php:52
+msgid "The address could not be saved. Try again."
+msgstr ""
+
+#: includes/class-order-form.php:76
 msgid "Customize & order"
 msgstr ""
 
-#: includes/class-order-form.php:111
-msgid "This kit includes"
+#: includes/class-order-form.php:118
+#: includes/class-order-form.php:603
+msgid "Includes"
 msgstr ""
 
-#: includes/class-order-form.php:114
-msgid "Full kit"
+#: includes/class-order-form.php:121
+msgid "Complete product"
 msgstr ""
 
-#: includes/class-order-form.php:115
-msgid "Only some pieces"
+#: includes/class-order-form.php:122
+msgid "Only some parts (replacements)"
 msgstr ""
 
-#. translators: %s: price of one piece
-#: includes/class-order-form.php:128
+#. translators: %s: price of one part
+#: includes/class-order-form.php:135
 msgid "%s each"
 msgstr ""
 
-#: includes/class-order-form.php:139
-msgid "Loose pieces are charged at each piece's price."
+#: includes/class-order-form.php:146
+msgid "Parts ordered alone are charged at each part's price."
 msgstr ""
 
-#: includes/class-order-form.php:150
+#: includes/class-order-form.php:157
 msgid "One row per person"
 msgstr ""
 
-#: includes/class-order-form.php:153
+#: includes/class-order-form.php:160
 msgid "Ship everyone to"
 msgstr ""
 
-#: includes/class-order-form.php:166
+#: includes/class-order-form.php:173
 msgid "Tip: paste a list copied from Excel into the first box (one person per line) to fill many people at once."
 msgstr ""
 
-#: includes/class-order-form.php:168
+#: includes/class-order-form.php:175
 msgid "+ Add person"
 msgstr ""
 
-#: includes/class-order-form.php:174
-msgid "Quantity per branch"
+#: includes/class-order-form.php:181
+msgid "Quantity per address"
 msgstr ""
 
-#: includes/class-order-form.php:176
-msgid "Every branch gets"
+#: includes/class-order-form.php:183
+msgid "Every address gets"
 msgstr ""
 
-#: includes/class-order-form.php:179
+#: includes/class-order-form.php:186
 msgid "Apply"
 msgstr ""
 
 #. translators: %s: branch
-#: includes/class-order-form.php:189
+#: includes/class-order-form.php:196
 msgid "Quantity for %s"
 msgstr ""
 
 #. translators: %d: minimum units
-#: includes/class-order-form.php:200
-msgid "Minimum %d per branch that receives this product."
+#: includes/class-order-form.php:207
+msgid "Minimum %d per address that receives this product."
 msgstr ""
 
-#: includes/class-order-form.php:208
-msgid "Contract customers can log in to ship this to several branches in one order."
-msgstr ""
-
-#: includes/class-order-form.php:211
-msgid "Your company has no branches saved yet, so this ships to the checkout address."
-msgstr ""
-
-#: includes/class-order-form.php:213
-msgid "Add branches"
+#: includes/class-order-form.php:216
+msgid "+ Add a new address"
 msgstr ""
 
 #: includes/class-order-form.php:230
+msgid "It is saved to your company's address book, so everyone in your company can use it next time."
+msgstr ""
+
+#: includes/class-order-form.php:235
+msgid "Contract customers can log in to ship this to several addresses in one order."
+msgstr ""
+
+#: includes/class-order-form.php:237
+msgid "Your company has no shipping addresses saved yet, so this ships to the checkout address. Your company admin can add addresses."
+msgstr ""
+
+#: includes/class-order-form.php:253
 msgid "required"
 msgstr ""
 
-#: includes/class-order-form.php:233
+#: includes/class-order-form.php:256
 msgid "Remove person"
 msgstr ""
 
-#: includes/class-order-form.php:260
-msgid "Ship to branch"
+#: includes/class-order-form.php:283
+msgid "Ship to address"
 msgstr ""
 
-#: includes/class-order-form.php:261
-msgid "Choose branch…"
+#: includes/class-order-form.php:284
+msgid "Choose address…"
 msgstr ""
 
-#: includes/class-order-form.php:343
+#: includes/class-order-form.php:363
 msgid "View cart"
 msgstr ""
 
 #. translators: 1: units, 2: product
-#: includes/class-order-form.php:345
+#: includes/class-order-form.php:365
 msgid "%1$d unit of \"%2$s\" added to your cart."
 msgid_plural "%1$d units of \"%2$s\" added to your cart."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-order-form.php:369
+#: includes/class-order-form.php:389
 msgid "This product cannot be ordered."
 msgstr ""
 
-#: includes/class-order-form.php:391
-msgid "Choose at least one piece of the kit."
+#: includes/class-order-form.php:410
+msgid "Choose at least one part."
 msgstr ""
 
 #. translators: 1: row number, 2: error
-#: includes/class-order-form.php:447
+#: includes/class-order-form.php:466
 msgid "Person %1$d: %2$s"
 msgstr ""
 
 #. translators: %d: row number
-#: includes/class-order-form.php:456
-msgid "Person %d: choose the branch it ships to."
+#: includes/class-order-form.php:475
+msgid "Person %d: choose the address it ships to."
 msgstr ""
 
-#: includes/class-order-form.php:463
+#: includes/class-order-form.php:482
 msgid "Add at least one person."
 msgstr ""
 
-#: includes/class-order-form.php:481
-msgid "Enter a quantity for at least one branch."
+#: includes/class-order-form.php:500
+msgid "Enter a quantity for at least one address."
 msgstr ""
 
 #. translators: 1: branch, 2: minimum
-#: includes/class-order-form.php:495
-msgid "%1$s: the minimum per branch is %2$d."
-msgstr ""
-
-#: includes/class-order-form.php:590
-msgid "Kit includes"
-msgstr ""
-
-#: includes/class-order-form.php:598
-msgid "From kit"
+#: includes/class-order-form.php:514
+msgid "%1$s: the minimum per address is %2$d."
 msgstr ""
 
 #. translators: %d: person number
-#: includes/class-order-form.php:607
+#: includes/class-order-form.php:620
 msgid "Person %d"
 msgstr ""
 
-#: includes/class-order-form.php:613
+#: includes/class-order-form.php:626
 msgid "Per person"
 msgstr ""
 
-#: includes/class-order-form.php:680
+#: includes/class-order-form.php:693
 msgid "This line has one unit per person. To change it, remove it and add it again with the right people."
 msgstr ""
 
@@ -919,11 +942,15 @@ msgstr ""
 msgid "Set by your company contract"
 msgstr ""
 
-#: includes/class-payments.php:255
+#: includes/class-payments.php:244
+msgid "Several addresses — see each item"
+msgstr ""
+
+#: includes/class-payments.php:259
 msgid "Client company:"
 msgstr ""
 
-#: includes/class-payments.php:263
+#: includes/class-payments.php:267
 msgid "Terms:"
 msgstr ""
 
@@ -969,85 +996,109 @@ msgid "buyers add one row per person (name, title…); each row is one unit"
 msgstr ""
 
 #: includes/class-product-admin.php:96
-msgid "Fields with the same label (e.g. \"Name\") are shared across the pieces of a kit, so buyers type each name once."
+msgid "Fields with the same label (e.g. \"Name\") are shared with this product's parts, so buyers type each name once."
 msgstr ""
 
 #: includes/class-product-admin.php:99
-msgid "this product groups several pieces"
+msgid "This product has parts"
 msgstr ""
 
-#: includes/class-product-admin.php:102
-msgid "Piece (product)"
+#: includes/class-product-admin.php:99
+msgid "e.g. a desk bar = base + name magnet, or a welcome pack = badge + desk bar + door plate"
 msgstr ""
 
-#: includes/class-product-admin.php:102
-msgid "Qty in kit"
+#: includes/class-product-admin.php:103
+msgid "Part"
 msgstr ""
 
-#: includes/class-product-admin.php:110
-msgid "+ Add piece"
+#: includes/class-product-admin.php:104
+msgid "Store product (optional)"
 msgstr ""
 
-#: includes/class-product-admin.php:114
-msgid "Full kit only"
+#: includes/class-product-admin.php:106
+#: includes/class-product-admin.php:202
+msgid "Can be ordered alone"
 msgstr ""
 
-#: includes/class-product-admin.php:115
-msgid "Full kit or loose pieces"
+#: includes/class-product-admin.php:116
+msgid "+ Add part"
 msgstr ""
 
-#: includes/class-product-admin.php:117
-msgid "Full kit price = this product's price (or the company's contract price for it). Loose pieces are charged at each piece's own price, so give pieces their contract prices too. Each piece's personalization comes from that piece's own settings."
+#: includes/class-product-admin.php:132
+msgid "Name only (e.g. \"Base\"): the part is for production and appears on the production sheet with this product's personalization."
 msgstr ""
 
-#: includes/class-product-admin.php:120
+#: includes/class-product-admin.php:133
+msgid "Linked to a store product (e.g. the name magnet): it can also be ordered alone as a replacement, at that product's price (give it contract prices too). Its personalization comes from that product. You can hide it from the shop in its Catalog visibility."
+msgstr ""
+
+#: includes/class-product-admin.php:134
+msgid "The complete product is charged at this product's price."
+msgstr ""
+
+#: includes/class-product-admin.php:138
 msgid "Ship to several addresses"
 msgstr ""
 
-#: includes/class-product-admin.php:120
+#: includes/class-product-admin.php:138
 msgid "buyers split quantities across their company's branches in one order and one invoice"
 msgstr ""
 
-#: includes/class-product-admin.php:122
+#: includes/class-product-admin.php:140
 msgid "Minimum units per address"
 msgstr ""
 
-#: includes/class-product-admin.php:128
+#: includes/class-product-admin.php:146
 msgid "Quote request only"
 msgstr ""
 
-#: includes/class-product-admin.php:128
+#: includes/class-product-admin.php:146
 msgid "no price or cart; visitors fill a form and the request comes to you"
 msgstr ""
 
-#: includes/class-product-admin.php:131
+#: includes/class-product-admin.php:149
 msgid "Contact fields (name, company, email, phone) are always included. Use \"Exclusive\" above to offer the quote form only to certain companies."
 msgstr ""
 
-#: includes/class-product-admin.php:152
+#: includes/class-product-admin.php:170
 msgid "Choose company…"
 msgstr ""
 
-#: includes/class-product-admin.php:243
+#: includes/class-product-admin.php:193
+msgid "e.g. Base"
+msgstr ""
+
+#: includes/class-product-admin.php:195
+msgid "None (production only)"
+msgstr ""
+
+#: includes/class-product-admin.php:263
 msgid "B2B"
 msgstr ""
 
 #. translators: %d: number of companies
-#: includes/class-product-admin.php:261
+#: includes/class-product-admin.php:281
 msgid "Exclusive (%d company)"
 msgid_plural "Exclusive (%d companies)"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-product-admin.php:267
+#. translators: %d: number of parts
+#: includes/class-product-admin.php:285
+msgid "%d part"
+msgid_plural "%d parts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-product-admin.php:288
 msgid "Personalized"
 msgstr ""
 
-#: includes/class-product-admin.php:270
+#: includes/class-product-admin.php:291
 msgid "Multi-address"
 msgstr ""
 
-#: includes/class-product-admin.php:273
+#: includes/class-product-admin.php:294
 msgid "Quote"
 msgstr ""
 
@@ -1220,64 +1271,64 @@ msgstr ""
 msgid "Shipping included in contract"
 msgstr ""
 
-#: includes/helpers.php:109
+#: includes/helpers.php:110
 msgid "Billing name / department"
 msgstr ""
 
-#: includes/helpers.php:110
+#: includes/helpers.php:111
 msgid "Address line 1"
 msgstr ""
 
-#: includes/helpers.php:111
+#: includes/helpers.php:112
 msgid "Address line 2"
 msgstr ""
 
-#: includes/helpers.php:112
-#: includes/helpers.php:518
+#: includes/helpers.php:113
+#: includes/helpers.php:568
 msgid "City"
 msgstr ""
 
-#: includes/helpers.php:113
-#: includes/helpers.php:519
+#: includes/helpers.php:114
+#: includes/helpers.php:569
 msgid "State"
 msgstr ""
 
-#: includes/helpers.php:114
+#: includes/helpers.php:115
 msgid "ZIP / Postcode"
 msgstr ""
 
-#: includes/helpers.php:115
+#: includes/helpers.php:116
 msgid "Country code (US, CA, MX…)"
 msgstr ""
 
-#: includes/helpers.php:116
+#: includes/helpers.php:117
 msgid "Billing email (invoices)"
 msgstr ""
 
-#: includes/helpers.php:117
+#: includes/helpers.php:118
 msgid "Billing phone"
 msgstr ""
 
-#: includes/helpers.php:513
-msgid "Branch name"
+#: includes/helpers.php:563
+msgid "Name (branch, office, person)"
 msgstr ""
 
-#: includes/helpers.php:514
-msgid "Branch #"
+#: includes/helpers.php:564
+msgid "Number / code"
 msgstr ""
 
-#: includes/helpers.php:515
+#: includes/helpers.php:565
 msgid "Attention"
 msgstr ""
 
-#: includes/helpers.php:517
+#: includes/helpers.php:567
 msgid "Address 2"
 msgstr ""
 
-#: includes/helpers.php:520
+#: includes/helpers.php:570
 msgid "ZIP"
 msgstr ""
 
-#: includes/helpers.php:521
+#: includes/helpers.php:571
 msgid "Country"
 msgstr ""

@@ -24,6 +24,7 @@ class B2BCP_Account {
 		add_filter( 'woocommerce_endpoint_' . self::ENDPOINT . '_title', array( __CLASS__, 'title' ) );
 		add_action( 'woocommerce_account_' . self::ENDPOINT . '_endpoint', array( __CLASS__, 'content' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'handle_post' ) );
+		add_action( 'wp_ajax_b2bcp_add_address', array( __CLASS__, 'ajax_add_address' ) );
 	}
 
 	/**
@@ -93,6 +94,7 @@ class B2BCP_Account {
 		}
 		$companies = b2bcp_user_companies( $user_id );
 		$is_admin  = b2bcp_user_is_company_admin( $user_id, $company_id );
+		$can_edit  = b2bcp_user_can_add_address( $user_id, $company_id );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only selects which branch to edit.
 		$editing   = isset( $_GET['edit_branch'] ) ? b2bcp_get_address( absint( $_GET['edit_branch'] ) ) : null;
 		if ( $editing && (int) $editing['company_id'] !== $company_id ) {
@@ -134,25 +136,27 @@ class B2BCP_Account {
 				<?php endif; ?>
 			</ul>
 
-			<h3><?php esc_html_e( 'Branches', 'b2b-contract-portal' ); ?></h3>
+			<h3><?php esc_html_e( 'Shipping addresses', 'b2b-contract-portal' ); ?></h3>
 			<?php $addresses = b2bcp_get_addresses( $company_id ); ?>
 			<?php if ( $addresses ) : ?>
 				<table class="shop_table b2bcp-branch-list">
-					<thead><tr><th><?php esc_html_e( 'Branch', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Address', 'b2b-contract-portal' ); ?></th><?php echo $is_admin ? '<th></th>' : ''; ?></tr></thead>
+					<thead><tr><th><?php esc_html_e( 'Name', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Address', 'b2b-contract-portal' ); ?></th><?php echo $can_edit ? '<th></th>' : ''; ?></tr></thead>
 					<tbody>
 					<?php foreach ( $addresses as $address ) : ?>
 						<tr>
 							<td><?php echo esc_html( b2bcp_address_label( $address ) ); ?></td>
 							<td><?php echo esc_html( b2bcp_address_line( $address ) ); ?></td>
-							<?php if ( $is_admin ) : ?>
+							<?php if ( $can_edit ) : ?>
 								<td class="b2bcp-actions">
 									<a href="<?php echo esc_url( add_query_arg( 'edit_branch', (int) $address['id'], wc_get_account_endpoint_url( self::ENDPOINT ) ) . '#b2bcp-branch-form' ); ?>"><?php esc_html_e( 'Edit', 'b2b-contract-portal' ); ?></a>
-									<form method="post" class="b2bcp-inline" onsubmit="return confirm('<?php echo esc_js( __( 'Delete this branch?', 'b2b-contract-portal' ) ); ?>');">
+									<?php if ( $is_admin ) : ?>
+									<form method="post" class="b2bcp-inline" onsubmit="return confirm('<?php echo esc_js( __( 'Delete this address?', 'b2b-contract-portal' ) ); ?>');">
 										<?php wp_nonce_field( 'b2bcp_branch', 'b2bcp_branch_nonce' ); ?>
 										<input type="hidden" name="b2bcp_branch_action" value="delete">
 										<input type="hidden" name="b2bcp_branch_id" value="<?php echo (int) $address['id']; ?>">
 										<button type="submit" class="b2bcp-link-button"><?php esc_html_e( 'Delete', 'b2b-contract-portal' ); ?></button>
 									</form>
+									<?php endif; ?>
 								</td>
 							<?php endif; ?>
 						</tr>
@@ -160,11 +164,11 @@ class B2BCP_Account {
 					</tbody>
 				</table>
 			<?php else : ?>
-				<p><?php esc_html_e( 'No branches saved yet.', 'b2b-contract-portal' ); ?></p>
+				<p><?php esc_html_e( 'No addresses saved yet.', 'b2b-contract-portal' ); ?></p>
 			<?php endif; ?>
 
-			<?php if ( $is_admin ) : ?>
-				<h3 id="b2bcp-branch-form"><?php echo esc_html( $editing ? __( 'Edit branch', 'b2b-contract-portal' ) : __( 'Add a branch', 'b2b-contract-portal' ) ); ?></h3>
+			<?php if ( $can_edit ) : ?>
+				<h3 id="b2bcp-branch-form"><?php echo esc_html( $editing ? __( 'Edit address', 'b2b-contract-portal' ) : __( 'Add an address', 'b2b-contract-portal' ) ); ?></h3>
 				<form method="post" class="b2bcp-branch-form">
 					<?php wp_nonce_field( 'b2bcp_branch', 'b2bcp_branch_nonce' ); ?>
 					<input type="hidden" name="b2bcp_branch_action" value="save">
@@ -177,13 +181,15 @@ class B2BCP_Account {
 							</p>
 						<?php endforeach; ?>
 					</div>
-					<p><button type="submit" class="button b2bcp-button-accent"><?php echo esc_html( $editing ? __( 'Save branch', 'b2b-contract-portal' ) : __( 'Add branch', 'b2b-contract-portal' ) ); ?></button>
+					<p><button type="submit" class="button b2bcp-button-accent"><?php echo esc_html( $editing ? __( 'Save address', 'b2b-contract-portal' ) : __( 'Add address', 'b2b-contract-portal' ) ); ?></button>
 					<?php if ( $editing ) : ?>
 						<a href="<?php echo esc_url( wc_get_account_endpoint_url( self::ENDPOINT ) ); ?>"><?php esc_html_e( 'Cancel', 'b2b-contract-portal' ); ?></a>
 					<?php endif; ?>
 					</p>
 				</form>
+			<?php endif; ?>
 
+			<?php if ( $is_admin ) : ?>
 				<h3><?php esc_html_e( 'People in your company', 'b2b-contract-portal' ); ?></h3>
 				<ul class="b2bcp-people-list">
 					<?php foreach ( b2bcp_company_users( $company_id ) as $user ) : ?>
@@ -194,6 +200,32 @@ class B2BCP_Account {
 			<?php endif; ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Add an address from the product page without leaving it.
+	 */
+	public static function ajax_add_address() {
+		check_ajax_referer( 'b2bcp_address', 'nonce' );
+		$user_id    = get_current_user_id();
+		$company_id = b2bcp_active_company_id();
+		if ( ! $company_id || ! b2bcp_user_can_add_address( $user_id, $company_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'You cannot add addresses for this company.', 'b2b-contract-portal' ) ), 403 );
+		}
+		$raw   = isset( $_POST['address'] ) && is_array( $_POST['address'] ) ? $_POST['address'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- sanitized in b2bcp_sanitize_address.
+		$clean = b2bcp_sanitize_address( $raw );
+		if ( '' === $clean['label'] || '' === $clean['address_1'] || '' === $clean['city'] ) {
+			wp_send_json_error( array( 'message' => __( 'Name, address and city are required.', 'b2b-contract-portal' ) ), 400 );
+		}
+		$id      = b2bcp_save_address( $company_id, $clean );
+		$address = b2bcp_get_address( $id );
+		wp_send_json_success(
+			array(
+				'id'    => $id,
+				'label' => b2bcp_address_label( $address ),
+				'line'  => b2bcp_address_line( $address ),
+			)
+		);
 	}
 
 	/**
@@ -222,10 +254,11 @@ class B2BCP_Account {
 
 		if ( isset( $_POST['b2bcp_branch_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['b2bcp_branch_nonce'] ) ), 'b2bcp_branch' ) ) {
 			$company_id = b2bcp_active_company_id();
-			if ( ! $company_id || ! b2bcp_user_is_company_admin( $user_id, $company_id ) ) {
+			$action     = sanitize_key( wp_unslash( $_POST['b2bcp_branch_action'] ?? '' ) );
+			$allowed    = 'delete' === $action ? b2bcp_user_is_company_admin( $user_id, $company_id ) : b2bcp_user_can_add_address( $user_id, $company_id );
+			if ( ! $company_id || ! $allowed ) {
 				return;
 			}
-			$action     = sanitize_key( wp_unslash( $_POST['b2bcp_branch_action'] ?? '' ) );
 			$address_id = absint( $_POST['b2bcp_branch_id'] ?? 0 );
 			if ( $address_id ) {
 				$existing = b2bcp_get_address( $address_id );
@@ -235,16 +268,16 @@ class B2BCP_Account {
 			}
 			if ( 'delete' === $action && $address_id ) {
 				b2bcp_delete_address( $company_id, $address_id );
-				wc_add_notice( __( 'Branch deleted.', 'b2b-contract-portal' ) );
+				wc_add_notice( __( 'Address deleted.', 'b2b-contract-portal' ) );
 			} elseif ( 'save' === $action ) {
 				$raw   = isset( $_POST['b2bcp_branch'] ) && is_array( $_POST['b2bcp_branch'] ) ? $_POST['b2bcp_branch'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- sanitized in b2bcp_sanitize_address.
 				$clean = b2bcp_sanitize_address( $raw );
 				if ( '' === $clean['label'] || '' === $clean['address_1'] || '' === $clean['city'] ) {
-					wc_add_notice( __( 'Branch name, address and city are required.', 'b2b-contract-portal' ), 'error' );
+					wc_add_notice( __( 'Name, address and city are required.', 'b2b-contract-portal' ), 'error' );
 					return;
 				}
 				b2bcp_save_address( $company_id, $clean, $address_id );
-				wc_add_notice( $address_id ? __( 'Branch updated.', 'b2b-contract-portal' ) : __( 'Branch added.', 'b2b-contract-portal' ) );
+				wc_add_notice( $address_id ? __( 'Address updated.', 'b2b-contract-portal' ) : __( 'Address added.', 'b2b-contract-portal' ) );
 			}
 			wp_safe_redirect( wc_get_account_endpoint_url( self::ENDPOINT ) );
 			exit;

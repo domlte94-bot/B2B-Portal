@@ -56,20 +56,38 @@ with sync_playwright() as p:
     rows.nth(2).locator('select.b2bcp-person-address').select_option(ids['a1'])
     page.locator('input[name$="[title]"]').first.click()  # blur to apply Title Case
     shot(page, '01-kit-form')
-    # Loose pieces view.
-    page.check('input[name=b2bcp_kit_mode][value=pieces]')
-    page.check(f'input[name="b2bcp_pieces[]"][value="{ids["plate"]}"]')
-    shot(page, '02-kit-pieces-mode', full=False)
-    page.check('input[name=b2bcp_kit_mode][value=full]')
+    # Only some parts.
+    page.check('input[name=b2bcp_parts_mode][value=parts]')
+    page.check(f'input[name="b2bcp_parts_chosen[]"][value="{ids["plate"]}"]')
+    shot(page, '02-parts-mode', full=False)
+    page.check('input[name=b2bcp_parts_mode][value=complete]')
     page.click('button.single_add_to_cart_button')
     page.wait_for_load_state('networkidle')
     shot(page, '03-after-add')
 
-    # Holiday sign: quantities per branch.
+    # Magnetic desk bar: name-only parts + replaceable magnet.
+    page.goto(f'{BASE}/?p={ids["mbar"]}')
+    page.check('input[name=b2bcp_parts_mode][value=parts]')
+    shot(page, '04a-deskbar-parts', full=False)
+
+    # Holiday sign: quantities per address, and a new address added on the spot.
     page.goto(f'{BASE}/?p={ids["sign"]}')
+    page.click('.b2bcp-new-address summary')
+    page.fill('input[data-address-key=label]', 'Springfield Office')
+    page.fill('input[data-address-key=code]', '045')
+    page.fill('input[data-address-key=address_1]', '700 Capitol Ave')
+    page.fill('input[data-address-key=city]', 'Springfield')
+    page.fill('input[data-address-key=state]', 'IL')
+    page.fill('input[data-address-key=postcode]', '62701')
+    page.press('input[data-address-key=postcode]', 'Enter')
+    page.wait_for_selector('input[name^="b2bcp_qty"][aria-label="Springfield Office (#045)"]', timeout=10000)
+    if 'Saved' not in page.inner_text('.b2bcp-new-address-status'):
+        errors.append('new address: ' + page.inner_text('.b2bcp-new-address-status'))
+    shot(page, '04b-new-address', full=False)
     page.fill('.b2bcp-all-qty', '2')
     page.click('.b2bcp-apply-qty')
     page.fill(f'input[name="b2bcp_qty[{ids["a1"]}]"]', '4')
+    page.fill('input[aria-label="Springfield Office (#045)"]', '3')
     shot(page, '04-sign-branches')
     page.click('button.single_add_to_cart_button')
     page.wait_for_load_state('networkidle')
