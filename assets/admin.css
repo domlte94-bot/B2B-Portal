@@ -1,0 +1,30 @@
+.b2bcp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 960px) { .b2bcp-grid { grid-template-columns: 1fr; } }
+.b2bcp-grid h4 { margin: 16px 0 8px; }
+.b2bcp-grid h4:first-child { margin-top: 0; }
+
+.b2bcp-repeater { margin: 8px 0; }
+.b2bcp-repeater td, .b2bcp-repeater th { vertical-align: middle; }
+.b2bcp-repeater input[type=text], .b2bcp-repeater select { max-width: 100%; }
+.b2bcp-repeater tfoot td { padding-top: 8px; }
+.b2bcp-remove-row { color: #b32d2e; font-size: 20px; line-height: 1; text-decoration: none; }
+.b2bcp-scroll { overflow-x: auto; }
+.b2bcp-branches input.regular-text { width: 11em; }
+.b2bcp-branches input.small-text { width: 5em; }
+
+.b2bcp-invite { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.b2bcp-logo-preview img { max-width: 100%; max-height: 120px; display: block; margin-bottom: 8px; border: 1px solid #dcdcde; padding: 6px; background: #fff; }
+
+/* Product tab (ids beat WooCommerce's panel rules for labels and rows) */
+#b2bcp_product_data h4 { margin: 14px 12px 4px; }
+#b2bcp_product_data label { float: none; width: auto; margin: 0; display: inline; }
+#b2bcp_product_data .b2bcp-row { margin: 8px 0; padding: 0 12px; }
+#b2bcp_product_data .b2bcp-row label + input { margin-left: 8px; }
+#b2bcp_product_data .b2bcp-inner { padding: 0 12px 12px 36px; }
+#b2bcp_product_data .b2bcp-field-builder input[type=text] { width: 100%; }
+#b2bcp_product_data .b2bcp-repeater select { max-width: 100%; }
+#b2bcp_product_data .description { display: block; margin: 4px 0 0; }
+#b2bcp_product_data .b2bcp-kit-mode label { display: block; margin: 4px 0; }
+#b2bcp_product_data .b2bcp-row input[type=number] { float: none; width: 6em; }
+#b2bcp_product_data .b2bcp-kit-mode { margin: 8px 0; }

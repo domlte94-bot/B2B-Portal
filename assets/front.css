@@ -1,0 +1,354 @@
+/* B2B Contract Portal — front end. Neutral by default; company accent through --b2bcp-accent. */
+.b2bcp-order,
+.b2bcp-quote,
+.b2bcp-account {
+	--b2bcp-line: rgba(0, 0, 0, 0.14);
+	--b2bcp-muted: rgba(0, 0, 0, 0.6);
+	margin: 0 0 1.5em;
+}
+
+.b2bcp-order fieldset,
+.b2bcp-quote {
+	border: 1px solid var(--b2bcp-line);
+	border-radius: 6px;
+	padding: 1em 1.1em;
+	margin: 0 0 1em;
+	min-width: 0;
+}
+
+.b2bcp-order legend {
+	font-weight: 600;
+	padding: 0 0.4em;
+}
+
+.b2bcp-hint,
+.b2bcp-muted {
+	color: var(--b2bcp-muted);
+	font-size: 0.9em;
+}
+
+.b2bcp-table-wrap {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.b2bcp-order table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0.5em 0;
+}
+
+.b2bcp-order th,
+.b2bcp-order td {
+	padding: 0.35em 0.4em;
+	border-bottom: 1px solid var(--b2bcp-line);
+	text-align: left;
+	vertical-align: middle;
+	font-size: 0.95em;
+}
+
+.b2bcp-order th {
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.b2bcp-order td input[type="text"],
+.b2bcp-order td input[type="number"],
+.b2bcp-order td select,
+.b2bcp-order td textarea {
+	width: 100%;
+	min-width: 7em;
+	box-sizing: border-box;
+	margin: 0;
+}
+
+.b2bcp-order .b2bcp-branch-qty {
+	width: 5.5em;
+	min-width: 0;
+}
+
+.b2bcp-people-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6em;
+	margin: 0.5em 0;
+}
+
+.b2bcp-person {
+	border: 1px solid var(--b2bcp-line);
+	border-radius: 6px;
+	padding: 0.5em 0.75em 0.75em;
+	background: rgba(255, 255, 255, 0.55);
+}
+
+.b2bcp-person-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.25em;
+}
+
+.b2bcp-num {
+	font-size: 0.85em;
+	font-weight: 600;
+	color: var(--b2bcp-muted);
+}
+
+.b2bcp-person-fields {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(10.5em, 1fr));
+	gap: 0.5em 0.75em;
+}
+
+.b2bcp-field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2em;
+	margin: 0;
+	font-weight: 400;
+	min-width: 0;
+}
+
+.b2bcp-field-label {
+	font-size: 0.85em;
+	font-weight: 600;
+}
+
+.b2bcp-field input[type="text"],
+.b2bcp-field input[type="number"],
+.b2bcp-field select,
+.b2bcp-field textarea {
+	width: 100%;
+	box-sizing: border-box;
+	margin: 0;
+	min-width: 0;
+}
+
+.b2bcp-remove-person {
+	background: none !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	font-size: 1.4em;
+	line-height: 1;
+	cursor: pointer;
+	color: var(--b2bcp-muted) !important;
+	padding: 0 0.25em !important;
+	min-height: 0 !important;
+}
+
+.b2bcp-remove-person:hover,
+.b2bcp-remove-person:focus {
+	color: #b32d2e !important;
+}
+
+.b2bcp-people-actions {
+	display: flex;
+	align-items: center;
+	gap: 1em;
+	margin: 0.5em 0 0;
+}
+
+.b2bcp-count {
+	color: var(--b2bcp-muted);
+	font-size: 0.9em;
+	margin: 0;
+}
+
+.b2bcp-apply-all {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.b2bcp-apply-all input[type="number"] {
+	width: 5.5em;
+}
+
+.b2bcp-kit-modes {
+	display: flex;
+	gap: 1.5em;
+	flex-wrap: wrap;
+}
+
+.b2bcp-pieces {
+	list-style: none;
+	margin: 0.5em 0;
+	padding: 0;
+}
+
+.b2bcp-pieces li {
+	padding: 0.25em 0;
+}
+
+.b2bcp-piece-price {
+	color: var(--b2bcp-muted);
+	margin-left: 0.4em;
+}
+
+.b2bcp-kit:not(.is-pieces) .b2bcp-piece-price,
+.b2bcp-kit:not(.is-pieces) .b2bcp-pieces-hint {
+	display: none;
+}
+
+.b2bcp-kit:not(.is-pieces) .b2bcp-pieces input[type="checkbox"] {
+	display: none;
+}
+
+.b2bcp-fixed-qty {
+	display: inline-block;
+	min-width: 2em;
+	text-align: center;
+}
+
+/* Quote form */
+.b2bcp-quote h3 {
+	margin-top: 0;
+}
+
+.b2bcp-quote .form-row label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 0.25em;
+}
+
+.b2bcp-quote .b2bcp-q-checkbox label {
+	font-weight: 400;
+}
+
+.b2bcp-quote input[type="text"],
+.b2bcp-quote input[type="email"],
+.b2bcp-quote input[type="tel"],
+.b2bcp-quote input[type="number"],
+.b2bcp-quote select,
+.b2bcp-quote textarea {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.b2bcp-hp {
+	position: absolute !important;
+	left: -9999px !important;
+	height: 1px;
+	overflow: hidden;
+}
+
+.b2bcp-quote-price {
+	font-size: 0.9em;
+	color: var(--b2bcp-muted, rgba(0, 0, 0, 0.6));
+}
+
+.b2bcp-form-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(14em, 1fr));
+	gap: 0 1em;
+}
+
+/* Company bar */
+.b2bcp-bar {
+	border-bottom: 3px solid var(--b2bcp-accent-line, rgba(0, 0, 0, 0.14));
+	background: #fff;
+	color: #222;
+	font-size: 14px;
+	position: relative;
+	z-index: 10;
+}
+
+.b2bcp-bar-inner {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 6px 16px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.b2bcp-bar img.b2bcp-bar-logo {
+	height: 32px !important;
+	width: auto !important;
+	max-width: 160px !important;
+	object-fit: contain;
+	display: block;
+	margin: 0;
+}
+
+.b2bcp-bar-text {
+	font-weight: 600;
+}
+
+.b2bcp-bar-link {
+	margin-left: auto;
+	color: var(--b2bcp-accent-line, inherit);
+}
+
+/* My Account → Company */
+.b2bcp-company-head {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin: 0 0 0.5em;
+}
+
+.b2bcp-company-head h2 {
+	margin: 0;
+}
+
+.b2bcp-company-head img.b2bcp-company-logo {
+	max-height: 64px !important;
+	width: auto !important;
+	max-width: 220px !important;
+}
+
+.b2bcp-link-button {
+	background: none !important;
+	border: 0 !important;
+	padding: 0 !important;
+	color: inherit !important;
+	text-decoration: underline;
+	font: inherit;
+	font-size: 0.9em;
+	cursor: pointer;
+	min-height: 0 !important;
+}
+
+.b2bcp-facts {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 1.5em;
+}
+
+.b2bcp-switch {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5em;
+	align-items: center;
+	padding: 0.75em 1em;
+	border: 1px solid rgba(0, 0, 0, 0.14);
+	border-left: 4px solid var(--b2bcp-accent-line, rgba(0, 0, 0, 0.3));
+	border-radius: 6px;
+}
+
+.b2bcp-inline {
+	display: inline;
+	margin-left: 0.75em;
+}
+
+.b2bcp-actions {
+	white-space: nowrap;
+}
+
+body.b2bcp-branded .b2bcp-order legend,
+body.b2bcp-branded .b2bcp-company-head h2 {
+	border-bottom: 2px solid var(--b2bcp-accent-line);
+}
+
+@media (max-width: 600px) {
+	.b2bcp-order fieldset {
+		padding: 0.75em;
+	}
+
+	.b2bcp-bar-link {
+		margin-left: 0;
+	}
+}
