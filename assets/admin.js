@@ -28,6 +28,17 @@
 		$( this ).closest( 'tr' ).remove();
 	} );
 
+	// Field builder: only a dropdown has options; they take the place of "Max chars" and "Format".
+	$( document ).on( 'change', '.b2bcp-field-type', function () {
+		var isSelect = 'select' === this.value;
+		var $row = $( this ).closest( 'tr' );
+		$row.find( '.b2bcp-col-typed' ).prop( 'hidden', isSelect );
+		var $options = $row.find( '.b2bcp-col-options' ).attr( 'colspan', isSelect ? 3 : 1 ).find( 'input' ).prop( 'hidden', ! isSelect );
+		if ( isSelect ) {
+			$options.trigger( 'focus' );
+		}
+	} );
+
 	// Show / hide the settings under each checkbox on the product tab.
 	function syncToggle( input ) {
 		$( $( input ).data( 'b2bcp-toggle' ) ).toggle( input.checked );

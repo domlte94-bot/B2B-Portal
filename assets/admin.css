@@ -34,3 +34,5 @@
 #b2bcp_product_data .b2bcp-parts input[type=text] { width: 100%; }
 #b2bcp_product_data ul.description { list-style: disc; margin-left: 18px; }
 #b2bcp_product_data ul.description li { margin: 2px 0; }
+.b2bcp-field-builder td[hidden], .b2bcp-field-builder input[hidden] { display: none; }
+.b2bcp-field-builder .b2bcp-col-options input { width: 100%; }
