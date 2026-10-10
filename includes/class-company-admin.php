@@ -182,21 +182,65 @@ class B2BCP_Company_Admin {
 	}
 
 	/**
-	 * Products assigned to the company and their contract price.
+	 * The company's own products (made from templates) and the shared products assigned to it.
 	 *
 	 * @param WP_Post $post Company.
 	 */
 	public static function box_products( $post ) {
-		$rows = b2bcp_company_assignments( $post->ID );
+		$rows      = b2bcp_company_assignments( $post->ID );
+		$owned     = b2bcp_company_products( $post->ID );
+		$templates = b2bcp_get_templates();
 		?>
-		<p class="description"><?php esc_html_e( 'Products this company can order. Restricted products are only visible to companies listed here. Leave the price empty to use the product\'s normal price.', 'b2b-contract-portal' ); ?></p>
+		<h4><?php esc_html_e( 'Products made for this company', 'b2b-contract-portal' ); ?></h4>
+		<p class="description"><?php esc_html_e( 'Each one starts as a copy of a template and then gets this company\'s own design: images, artwork, fields and price. Changing the template later does not change the copies.', 'b2b-contract-portal' ); ?></p>
+		<?php if ( $owned ) : ?>
+			<table class="widefat b2bcp-repeater b2bcp-owned">
+				<thead><tr><th><?php esc_html_e( 'Product', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Status', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Regular price', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Contract price', 'b2b-contract-portal' ); ?></th><th></th></tr></thead>
+				<tbody>
+					<?php
+					foreach ( $owned as $product_id ) {
+						$product = wc_get_product( $product_id );
+						if ( $product ) {
+							self::owned_row( $product, $rows[ $product_id ] ?? null );
+						}
+					}
+					?>
+				</tbody>
+			</table>
+		<?php endif; ?>
+		<?php if ( $templates ) : ?>
+			<p class="b2bcp-new-product">
+				<label for="b2bcp-new-template"><?php esc_html_e( 'New product from template', 'b2b-contract-portal' ); ?></label>
+				<select id="b2bcp-new-template" name="b2bcp_new_product[template_id]">
+					<option value=""><?php esc_html_e( 'Choose template…', 'b2b-contract-portal' ); ?></option>
+					<?php foreach ( $templates as $id => $name ) : ?>
+						<option value="<?php echo (int) $id; ?>"><?php echo esc_html( $name ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<input type="text" class="short wc_input_price" name="b2bcp_new_product[price]" placeholder="<?php esc_attr_e( 'Contract price (optional)', 'b2b-contract-portal' ); ?>" aria-label="<?php esc_attr_e( 'Contract price (optional)', 'b2b-contract-portal' ); ?>">
+				<button type="submit" class="button"><?php esc_html_e( 'Save and create product', 'b2b-contract-portal' ); ?></button>
+			</p>
+		<?php else : ?>
+			<p>
+				<?php
+				printf(
+					/* translators: %s: link to the product list */
+					esc_html__( 'No templates yet. Open a product such as "Name badge", tick "Template" in its B2B Portal tab and it will be offered here. %s', 'b2b-contract-portal' ),
+					'<a href="' . esc_url( admin_url( 'edit.php?post_type=product' ) ) . '">' . esc_html__( 'Go to products', 'b2b-contract-portal' ) . '</a>'
+				);
+				?>
+			</p>
+		<?php endif; ?>
+
+		<h4><?php esc_html_e( 'Shared products', 'b2b-contract-portal' ); ?></h4>
+		<p class="description"><?php esc_html_e( 'Products that are the same for every company that orders them. Exclusive products are only visible to companies listed here. Leave the price empty to use the product\'s normal price.', 'b2b-contract-portal' ); ?></p>
 		<table class="widefat b2bcp-repeater" data-name="b2bcp_products">
 			<thead><tr><th><?php esc_html_e( 'Product', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Visibility', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Regular price', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Contract price', 'b2b-contract-portal' ); ?></th><th></th></tr></thead>
 			<tbody>
 				<?php
 				$i = 0;
 				foreach ( $rows as $product_id => $price ) {
-					$product = wc_get_product( $product_id );
+					$product = in_array( (int) $product_id, $owned, true ) ? null : wc_get_product( $product_id );
 					if ( ! $product ) {
 						continue;
 					}
@@ -207,6 +251,30 @@ class B2BCP_Company_Admin {
 			<tfoot><tr><td colspan="5"><button type="button" class="button b2bcp-add-row"><?php esc_html_e( '+ Add product', 'b2b-contract-portal' ); ?></button></td></tr></tfoot>
 		</table>
 		<script type="text/html" class="b2bcp-row-template"><?php self::product_row( '__i__', null, null ); ?></script>
+		<?php
+	}
+
+	/**
+	 * One row for a product that belongs to this company. It stays assigned as long as it exists.
+	 *
+	 * @param WC_Product $product Product.
+	 * @param float|null $price   Contract price.
+	 */
+	private static function owned_row( $product, $price ) {
+		$base   = 'b2bcp_products[o' . $product->get_id() . ']';
+		$status = get_post_status_object( $product->get_status() );
+		$edit   = get_edit_post_link( $product->get_id() );
+		?>
+		<tr>
+			<td style="width:40%">
+				<input type="hidden" name="<?php echo esc_attr( $base ); ?>[product_id]" value="<?php echo (int) $product->get_id(); ?>">
+				<a href="<?php echo esc_url( (string) $edit ); ?>"><strong><?php echo esc_html( $product->get_name() ); ?></strong></a>
+			</td>
+			<td><?php echo esc_html( $status ? $status->label : $product->get_status() ); ?></td>
+			<td><?php echo wp_kses_post( wc_price( (float) $product->get_regular_price( 'edit' ) ) ); ?></td>
+			<td><input type="text" class="short wc_input_price" name="<?php echo esc_attr( $base ); ?>[price]" placeholder="<?php esc_attr_e( 'Regular', 'b2b-contract-portal' ); ?>" value="<?php echo null === $price ? '' : esc_attr( wc_format_localized_price( (string) $price ) ); ?>"></td>
+			<td><a class="button button-small" href="<?php echo esc_url( (string) $edit ); ?>"><?php esc_html_e( 'Edit design', 'b2b-contract-portal' ); ?></a></td>
+		</tr>
 		<?php
 	}
 
@@ -389,11 +457,18 @@ class B2BCP_Company_Admin {
 		$rows     = array();
 		foreach ( $products as $row ) {
 			$product_id = absint( $row['product_id'] ?? 0 );
-			if ( $product_id && wc_get_product( $product_id ) ) {
+			if ( $product_id && wc_get_product( $product_id ) && ! b2bcp_product_config( $product_id )['template'] ) {
 				$rows[ $product_id ] = b2bcp_parse_price( $row['price'] ?? '' );
 			}
 		}
 		b2bcp_replace_assignments( 'company', $post_id, $rows );
+
+		// New product for this company, copied from a template.
+		$new         = isset( $_POST['b2bcp_new_product'] ) && is_array( $_POST['b2bcp_new_product'] ) ? wp_unslash( $_POST['b2bcp_new_product'] ) : array();
+		$template_id = absint( $new['template_id'] ?? 0 );
+		if ( $template_id ) {
+			set_transient( 'b2bcp_created_' . get_current_user_id(), b2bcp_create_company_product( $template_id, $post_id, b2bcp_parse_price( $new['price'] ?? '' ) ), 60 );
+		}
 
 		// Branches: update existing, insert new, delete removed.
 		$branches = isset( $_POST['b2bcp_branches'] ) && is_array( $_POST['b2bcp_branches'] ) ? $_POST['b2bcp_branches'] : array();
@@ -494,9 +569,25 @@ class B2BCP_Company_Admin {
 	}
 
 	/**
-	 * Show the invitation result after saving.
+	 * Show the result of creating a product or inviting a user after saving.
 	 */
 	public static function notices() {
+		$created = get_transient( 'b2bcp_created_' . get_current_user_id() );
+		if ( false !== $created ) {
+			delete_transient( 'b2bcp_created_' . get_current_user_id() );
+			$product = $created ? wc_get_product( (int) $created ) : null;
+			if ( $product ) {
+				printf(
+					'<div class="notice notice-success is-dismissible"><p>%1$s <a href="%2$s">%3$s</a></p></div>',
+					/* translators: %s: product name */
+					esc_html( sprintf( __( '"%s" was created as a draft. Add this company\'s design and publish it so buyers can order it.', 'b2b-contract-portal' ), $product->get_name() ) ),
+					esc_url( (string) get_edit_post_link( $product->get_id() ) ),
+					esc_html__( 'Edit design', 'b2b-contract-portal' )
+				);
+			} else {
+				printf( '<div class="notice notice-error is-dismissible"><p>%s</p></div>', esc_html__( 'The product could not be created from that template.', 'b2b-contract-portal' ) );
+			}
+		}
 		$notice = get_transient( 'b2bcp_notice_' . get_current_user_id() );
 		if ( ! $notice ) {
 			return;

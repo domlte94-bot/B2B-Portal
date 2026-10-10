@@ -372,11 +372,15 @@ function b2bcp_product_config( $product ) {
 	$quote_fields = get_post_meta( $id, '_b2bcp_quote_fields', true );
 	$visibility   = get_post_meta( $id, '_b2bcp_visibility', true );
 	$has_parts    = 'yes' === get_post_meta( $id, '_b2bcp_has_parts', true );
+	$owner        = (int) get_post_meta( $id, '_b2bcp_owner_company', true );
 	$parts        = $has_parts ? b2bcp_normalize_parts( get_post_meta( $id, '_b2bcp_parts', true ), $id ) : array();
 
 	$config = array(
 		'id'              => $id,
 		'visibility'      => 'restricted' === $visibility ? 'restricted' : 'public',
+		'template'        => ! $owner && 'yes' === get_post_meta( $id, '_b2bcp_template', true ),
+		'owner_company'   => $owner,
+		'template_id'     => $owner ? (int) get_post_meta( $id, '_b2bcp_template_id', true ) : 0,
 		'personalized'    => 'yes' === get_post_meta( $id, '_b2bcp_personalized', true ),
 		'fields'          => is_array( $fields ) ? $fields : array(),
 		'multiaddress'    => 'yes' === get_post_meta( $id, '_b2bcp_multiaddress', true ),
@@ -485,8 +489,8 @@ function b2bcp_person_fields( array $config ) {
 
 /**
  * Whether a company may see and buy a product.
- * Public products: everyone. Restricted: companies it is assigned to, plus
- * parts that can be ordered alone from a product assigned to that company.
+ * Templates: nobody. Public products: everyone. Restricted: companies it is
+ * assigned to, plus parts that can be ordered alone from a product assigned to that company.
  *
  * @param int $product_id Product id (parent id for variations).
  * @param int $company_id Company id (0 = guest / no company).
@@ -494,6 +498,9 @@ function b2bcp_person_fields( array $config ) {
  */
 function b2bcp_company_can_access( $product_id, $company_id ) {
 	$config = b2bcp_product_config( (int) $product_id );
+	if ( $config['template'] ) {
+		return false;
+	}
 	if ( 'public' === $config['visibility'] ) {
 		return true;
 	}
@@ -516,7 +523,7 @@ function b2bcp_company_can_access( $product_id, $company_id ) {
 }
 
 /**
- * Ids of restricted products the given company cannot see (for catalog queries).
+ * Ids of templates and restricted products the given company cannot see (for catalog queries).
  *
  * @param int $company_id Company id.
  * @return int[]
@@ -533,8 +540,17 @@ function b2bcp_hidden_product_ids( $company_id ) {
 			'post_status'      => 'any',
 			'posts_per_page'   => -1,
 			'fields'           => 'ids',
-			'meta_key'         => '_b2bcp_visibility', // phpcs:ignore WordPress.DB.SlowDBQuery
-			'meta_value'       => 'restricted', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_query'       => array( // phpcs:ignore WordPress.DB.SlowDBQuery
+				'relation' => 'OR',
+				array(
+					'key'   => '_b2bcp_visibility',
+					'value' => 'restricted',
+				),
+				array(
+					'key'   => '_b2bcp_template',
+					'value' => 'yes',
+				),
+			),
 			'suppress_filters' => true,
 			'b2bcp_skip'       => true, // Not filtered by our own catalog rules.
 		)
@@ -547,6 +563,124 @@ function b2bcp_hidden_product_ids( $company_id ) {
 	}
 	$cache[ $key ] = $hidden;
 	return $hidden;
+}
+
+/* -------------------------------------------------------------------------
+ * Templates and company products
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Products marked as templates, id => name, sorted by name.
+ *
+ * @return array<int,string>
+ */
+function b2bcp_get_templates() {
+	$ids = get_posts(
+		array(
+			'post_type'        => 'product',
+			'post_status'      => array( 'publish', 'private', 'draft', 'pending' ),
+			'posts_per_page'   => -1,
+			'orderby'          => 'title',
+			'order'            => 'ASC',
+			'fields'           => 'ids',
+			'meta_key'         => '_b2bcp_template', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_value'       => 'yes', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'suppress_filters' => true,
+			'b2bcp_skip'       => true,
+		)
+	);
+	$out = array();
+	foreach ( $ids as $id ) {
+		// A copy never counts as a template, whatever meta it carries.
+		if ( b2bcp_product_config( (int) $id )['template'] ) {
+			$out[ (int) $id ] = get_the_title( $id );
+		}
+	}
+	return $out;
+}
+
+/**
+ * Products made for one company (copies of a template with that company's design).
+ *
+ * @param int $company_id Company id.
+ * @return int[] Product ids, sorted by name.
+ */
+function b2bcp_company_products( $company_id ) {
+	$ids = get_posts(
+		array(
+			'post_type'        => 'product',
+			'post_status'      => array( 'publish', 'private', 'draft', 'pending' ),
+			'posts_per_page'   => -1,
+			'orderby'          => 'title',
+			'order'            => 'ASC',
+			'fields'           => 'ids',
+			'meta_key'         => '_b2bcp_owner_company', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'meta_value'       => (int) $company_id, // phpcs:ignore WordPress.DB.SlowDBQuery
+			'suppress_filters' => true,
+			'b2bcp_skip'       => true,
+		)
+	);
+	return array_map( 'intval', $ids );
+}
+
+/**
+ * Assign one product to one company (or change its contract price).
+ *
+ * @param int        $company_id Company id.
+ * @param int        $product_id Product id.
+ * @param float|null $price      Contract price, null = the product's own price.
+ */
+function b2bcp_assign_product( $company_id, $product_id, $price = null ) {
+	global $wpdb;
+	b2bcp_cache_bust();
+	$wpdb->replace( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->prefix . 'b2bcp_prices',
+		array(
+			'company_id' => (int) $company_id,
+			'product_id' => (int) $product_id,
+			'price'      => null === $price ? null : (float) $price,
+		)
+	);
+}
+
+/**
+ * Copy a template into a product that belongs to one company.
+ * The copy keeps the template's fields, parts and price, is exclusive to the
+ * company and starts as a draft so the store can add the company's design first.
+ *
+ * @param int        $template_id Template product id.
+ * @param int        $company_id  Company id.
+ * @param float|null $price       Contract price, null = the copy's own price.
+ * @return int New product id, or 0.
+ */
+function b2bcp_create_company_product( $template_id, $company_id, $price = null ) {
+	$template = wc_get_product( (int) $template_id );
+	$company  = get_post( (int) $company_id );
+	if ( ! $template || ! $company || B2BCP_COMPANY_CPT !== $company->post_type || ! b2bcp_product_config( $template )['template'] ) {
+		return 0;
+	}
+	if ( ! class_exists( 'WC_Admin_Duplicate_Product', false ) ) {
+		include_once WC_ABSPATH . 'includes/admin/class-wc-admin-duplicate-product.php';
+	}
+	if ( ! class_exists( 'WC_Admin_Duplicate_Product', false ) ) {
+		return 0;
+	}
+	$duplicator = new WC_Admin_Duplicate_Product();
+	$copy       = $duplicator->product_duplicate( $template );
+	if ( ! $copy instanceof WC_Product || ! $copy->get_id() ) {
+		return 0;
+	}
+
+	/* translators: 1: company name, 2: template name */
+	$copy->set_name( sprintf( __( '%1$s – %2$s', 'b2b-contract-portal' ), $company->post_title, $template->get_name( 'edit' ) ) );
+	$copy->update_meta_data( '_b2bcp_template', 'no' );
+	$copy->update_meta_data( '_b2bcp_visibility', 'restricted' );
+	$copy->update_meta_data( '_b2bcp_owner_company', (int) $company_id );
+	$copy->update_meta_data( '_b2bcp_template_id', $template->get_id() );
+	$copy->save();
+
+	b2bcp_assign_product( $company_id, $copy->get_id(), $price );
+	return $copy->get_id();
 }
 
 /* -------------------------------------------------------------------------

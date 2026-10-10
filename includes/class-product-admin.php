@@ -52,6 +52,27 @@ class B2BCP_Product_Admin {
 		<div id="b2bcp_product_data" class="panel woocommerce_options_panel hidden b2bcp-product-panel">
 
 			<div class="options_group">
+				<?php if ( $config['owner_company'] ) : ?>
+					<p class="b2bcp-row">
+						<?php
+						$template_name = $config['template_id'] ? get_the_title( $config['template_id'] ) : '';
+						printf(
+							/* translators: %s: company name (linked) */
+							esc_html__( 'Made for %s: this product carries that company\'s own design.', 'b2b-contract-portal' ),
+							'<a href="' . esc_url( (string) get_edit_post_link( $config['owner_company'] ) ) . '"><strong>' . esc_html( get_the_title( $config['owner_company'] ) ) . '</strong></a>'
+						);
+						if ( '' !== $template_name ) {
+							/* translators: %s: template name */
+							echo ' ' . esc_html( sprintf( __( 'Copied from the template "%s".', 'b2b-contract-portal' ), $template_name ) );
+						}
+						?>
+					</p>
+				<?php else : ?>
+					<p class="b2bcp-row"><label class="b2bcp-toggle"><input type="checkbox" name="b2bcp_template" value="yes" <?php checked( $config['template'] ); ?>> <strong><?php esc_html_e( 'Template', 'b2b-contract-portal' ); ?></strong> &mdash; <?php esc_html_e( 'not sold as it is; each company gets its own copy with its design, created from the company\'s page', 'b2b-contract-portal' ); ?></label></p>
+				<?php endif; ?>
+			</div>
+
+			<div class="options_group">
 				<h4><?php esc_html_e( 'Who can see this product', 'b2b-contract-portal' ); ?></h4>
 				<p class="b2bcp-row">
 					<label><input type="radio" name="b2bcp_visibility" value="public" <?php checked( $config['visibility'], 'public' ); ?>> <?php esc_html_e( 'Public: everyone sees it; companies below see their contract price', 'b2b-contract-portal' ); ?></label><br>
@@ -217,6 +238,7 @@ class B2BCP_Product_Admin {
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput -- each value is sanitized below.
 		$id = $product->get_id();
 
+		$product->update_meta_data( '_b2bcp_template', isset( $_POST['b2bcp_template'] ) && ! (int) $product->get_meta( '_b2bcp_owner_company' ) ? 'yes' : 'no' );
 		$product->update_meta_data( '_b2bcp_visibility', isset( $_POST['b2bcp_visibility'] ) && 'restricted' === $_POST['b2bcp_visibility'] ? 'restricted' : 'public' );
 		$product->update_meta_data( '_b2bcp_personalized', isset( $_POST['b2bcp_personalized'] ) ? 'yes' : 'no' );
 		$product->update_meta_data( '_b2bcp_fields', B2BCP_Fields::sanitize_definitions( $_POST['b2bcp_fields'] ?? array(), 'person' ) );
@@ -276,7 +298,14 @@ class B2BCP_Product_Admin {
 		}
 		$config = b2bcp_product_config( $post_id );
 		$tags   = array();
-		if ( 'restricted' === $config['visibility'] ) {
+		if ( $config['template'] ) {
+			$tags[] = __( 'Template', 'b2b-contract-portal' );
+		}
+		if ( $config['owner_company'] ) {
+			/* translators: %s: company name */
+			$tags[] = sprintf( __( 'Made for %s', 'b2b-contract-portal' ), get_the_title( $config['owner_company'] ) );
+		}
+		if ( 'restricted' === $config['visibility'] && ! $config['template'] && ! $config['owner_company'] ) {
 			/* translators: %d: number of companies */
 			$tags[] = sprintf( _n( 'Exclusive (%d company)', 'Exclusive (%d companies)', count( b2bcp_product_assignments( $post_id ) ), 'b2b-contract-portal' ), count( b2bcp_product_assignments( $post_id ) ) );
 		}

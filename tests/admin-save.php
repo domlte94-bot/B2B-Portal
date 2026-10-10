@@ -45,6 +45,32 @@ b2bcp_set_company_admin($ana, $bank, true);
 ok(b2bcp_user_can_add_address($ana, $bank), 'Company admin always can');
 ok(!b2bcp_user_can_add_address($ana, $id), 'Not a member: cannot add');
 update_post_meta($bank, '_b2bcp_buyers_add_addresses', 'yes');
+// Templates and company products.
+$tpl = new WC_Product_Simple();
+$tpl->set_name('Name Badge'); $tpl->set_regular_price('9'); $tpl->set_status('publish');
+$tpl->update_meta_data('_b2bcp_template','yes'); $tpl->update_meta_data('_b2bcp_personalized','yes');
+$tpl->update_meta_data('_b2bcp_fields', B2BCP_Fields::sanitize_definitions(array(array('label'=>'Name','type'=>'text','required'=>'1')),'person'));
+$tpl_id = $tpl->save();
+ok(isset(b2bcp_get_templates()[$tpl_id]), 'Template is listed');
+ok(!b2bcp_company_can_access($tpl_id, $id) && !b2bcp_company_can_access($tpl_id, 0), 'Template cannot be ordered by anyone');
+ok(in_array($tpl_id, b2bcp_hidden_product_ids(0), true) && in_array($tpl_id, b2bcp_hidden_product_ids($id), true), 'Template hidden from the catalog');
+$_POST['b2bcp_users'] = array();
+$_POST['b2bcp_new_product'] = array('template_id'=>$tpl_id,'price'=>'7.75');
+B2BCP_Company_Admin::save($id, get_post($id));
+unset($_POST['b2bcp_new_product']);
+$own = b2bcp_company_products($id);
+ok(1===count($own), 'Company product created from the template');
+$copy = wc_get_product($own[0]); $ccfg = b2bcp_product_config($own[0]);
+ok('Lakeview Schools – Name Badge'===$copy->get_name() && 'draft'===$copy->get_status(), 'Copy named after the company, starts as draft: '.$copy->get_name());
+ok(!$ccfg['template'] && 'restricted'===$ccfg['visibility'] && $id===$ccfg['owner_company'] && $tpl_id===$ccfg['template_id'], 'Copy is exclusive, owned by the company, not a template');
+ok($ccfg['personalized'] && 1===count($ccfg['fields']) && '9'===$copy->get_regular_price('edit'), 'Copy keeps the template fields and price');
+ok(7.75===b2bcp_company_assignments($id)[$own[0]] && array($id)===array_keys(b2bcp_product_assignments($own[0])), 'Copy assigned only to its company at the contract price');
+ok(b2bcp_company_can_access($own[0], $id) && !b2bcp_company_can_access($own[0], $bank), 'Only the owner company can order the copy');
+ok(!isset(b2bcp_get_templates()[$own[0]]) && isset(b2bcp_get_templates()[$tpl_id]), 'Copy is not offered as a template; template unchanged');
+$_POST['b2bcp_products'][] = array('product_id'=>$tpl_id,'price'=>'1');
+B2BCP_Company_Admin::save($id, get_post($id));
+ok(!array_key_exists($tpl_id, b2bcp_company_assignments($id)), 'A template cannot be assigned as a shared product');
+ok(0===b2bcp_create_company_product($badge, $id), 'A product that is not a template is not copied');
 // Product tab save.
 $p = wc_get_product($mug);
 $_POST = array(

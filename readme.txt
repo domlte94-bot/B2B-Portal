@@ -6,7 +6,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 WC requires at least: 8.0
 WC tested up to: 10.2
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 
 Contract customers for print and promo shops: client companies, exclusive catalogs and prices, products with parts, per-person names and titles, many addresses in one order.
@@ -16,6 +16,7 @@ Contract customers for print and promo shops: client companies, exclusive catalo
 Built for print shops, sign shops and promotional-product stores that sell to companies on contract.
 
 * **Client companies.** Each company has its users (invitation only), shipping addresses, fixed billing address, payment terms and its own logo and accent color.
+* **Templates and company products.** Mark "Name badge" or "Desk bar" as a template once, then create each company's own copy from the company page and give it that company's design, fields and price.
 * **Exclusive catalog and contract prices.** Mark a product "Exclusive" and only the companies it is assigned to can see or order it. Each company can have its own price. Edit assignments from the company or from the product.
 * **Personalized products.** Buyers add one row per person (name, title, any field you define). Each row is one unit. Text can be forced to Title Case or UPPERCASE, with a character limit for the space on the product. Lists can be pasted straight from Excel.
 * **Products with parts.** A product can be made of parts: a desk bar = base + name magnet + back plate, or a welcome pack = badge + desk bar + door plate. Parts can be just a name (for production) or a store product. Mark which parts can also be ordered alone, e.g. a replacement name magnet, charged at that part's own price. Names typed once fill every part that uses them.
@@ -43,6 +44,10 @@ Contract prices apply to all variations of a product. Personalization, parts and
 They choose which company they are ordering for in My Account → Company. Catalog, prices and cart follow that choice.
 
 == Changelog ==
+
+= 0.3.0 =
+* Templates: mark a product as a template and create each company's own copy from the company page, with that company's design, fields and price.
+* The company page separates products made for the company from shared products.
 
 = 0.2.0 =
 * Kits become "products with parts": parts can be just a name, and each part says whether it can be ordered alone.
