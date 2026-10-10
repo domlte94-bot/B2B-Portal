@@ -6,6 +6,7 @@
  * Author:            Muvves Studio
  * Text Domain:       b2b-contract-portal
  * Domain Path:       /languages
+ * Update URI:        https://github.com/domlte94-bot/B2B-Portal
  * Requires at least: 6.3
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
@@ -24,7 +25,12 @@ define( 'B2BCP_URL', plugin_dir_url( __FILE__ ) );
 
 require_once B2BCP_DIR . 'includes/class-install.php';
 
+require_once B2BCP_DIR . 'includes/class-updater.php';
+
 register_activation_hook( __FILE__, array( 'B2BCP_Install', 'activate' ) );
+
+// Updates do not depend on WooCommerce being active.
+B2BCP_Updater::init();
 
 // Declare compatibility with WooCommerce High-Performance Order Storage.
 add_action(

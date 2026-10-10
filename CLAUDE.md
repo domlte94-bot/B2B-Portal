@@ -40,6 +40,7 @@ includes/class-quotes.php    quote products, form, CPT b2bcp_quote, admin screen
 includes/class-emails.php    invitation, quote emails (via WC mailer), company header + extra recipients on order emails
 includes/class-export.php    production sheet CSV (order box + bulk action)
 includes/class-settings.php  B2B Portal → Settings
+includes/class-updater.php   one-click updates from GitHub releases (header `Update URI` + `update_plugins_github.com` filter)
 ```
 
 Cart line data lives in `$cart_item['b2bcp']` and is copied to order item meta `_b2bcp` (array: company_id, address_id, address, people, labels, per_person, part_of, complete, components snapshot, line_id). Readable rows (Ship to, Kit includes, Person N) are added as visible meta.
@@ -49,6 +50,16 @@ Gotchas already handled:
 - `b2bcp_hidden_product_ids()` queries with `b2bcp_skip` so the catalog filter does not filter its own lookup.
 - In-request caches are versioned; `b2bcp_cache_bust()` runs on assignment changes and any `_b2bcp_*` post meta change.
 - WooCommerce's own add-to-cart is stopped (`unset $_REQUEST['add-to-cart']`) when our form handles the submit on `wp_loaded` priority 19.
+
+## Releasing
+
+Sites update with WordPress's normal "Update now": `class-updater.php` reads the repo's latest GitHub release (cached 1 hour; "Check again" on Dashboard → Updates clears it). To publish a version:
+
+1. Bump `Version:` and `B2BCP_VERSION` in `b2b-contract-portal.php`, `Stable tag` and the changelog in `readme.txt`; merge to `main`.
+2. Build the zip with the plugin inside a `b2b-contract-portal/` folder, leaving out everything in `.distignore`.
+3. `gh release create 0.3.1 b2b-contract-portal-0.3.1.zip --title 0.3.1 --notes "…"`. The tag must be the version number and the zip name must start with `b2b-contract-portal`; a release without that zip is ignored.
+
+The repo is public, so anyone can download releases. Selling it will need a private repo and a license server instead of this updater.
 
 ## Testing
 

@@ -48,6 +48,7 @@ They choose which company they are ordering for in My Account → Company. Catal
 = 0.3.0 =
 * Templates: mark a product as a template and create each company's own copy from the company page, with that company's design, fields and price.
 * The company page separates products made for the company from shared products.
+* Updates arrive in WordPress like any other plugin (Dashboard → Updates), from the plugin's GitHub releases.
 
 = 0.2.0 =
 * Kits become "products with parts": parts can be just a name, and each part says whether it can be ordered alone.
