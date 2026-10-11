@@ -404,3 +404,41 @@ body.b2bcp-branded .b2bcp-company-head h2 {
 	width: auto;
 	margin: 0 0 1em;
 }
+
+.b2bcp-dashboard-section {
+	margin: 0 0 2em;
+}
+
+.b2bcp-dashboard-section h2 {
+	font-size: 1.25em;
+	margin: 0 0 0.75em;
+}
+
+.b2bcp-dashboard-links {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+}
+
+.b2bcp-dashboard-link {
+	display: block;
+	padding: 14px 16px;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	border-radius: 6px;
+	text-decoration: none;
+}
+
+.b2bcp-dashboard-link:hover,
+.b2bcp-dashboard-link:focus {
+	border-color: currentColor;
+}
+
+.b2bcp-dashboard-link strong,
+.b2bcp-dashboard-link span {
+	display: block;
+}
+
+.b2bcp-dashboard-link span {
+	font-size: 0.9em;
+	opacity: 0.75;
+}

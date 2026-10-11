@@ -174,7 +174,7 @@ class B2BCP_Welcome {
 	 * @param WP_User $user    User.
 	 * @param string  $after   Extra line (plain text).
 	 */
-	private static function block( array $company, $user, $after ) {
+	public static function block( array $company, $user, $after ) {
 		$logo = $company['logo_id'] ? wp_get_attachment_image_url( $company['logo_id'], 'medium' ) : '';
 		wp_enqueue_style( 'b2bcp-front' );
 		echo '<div class="b2bcp-welcome">';
@@ -233,18 +233,12 @@ class B2BCP_Welcome {
 	}
 
 	/**
-	 * First screen after choosing the password.
+	 * First screen after choosing the password: the company home (B2BCP_Dashboard) carries the welcome.
 	 */
 	public static function first_visit() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if ( empty( $_GET['b2bcp_welcome'] ) ) {
-			return;
+		if ( ! empty( $_GET['b2bcp_welcome'] ) && b2bcp_active_company_id() ) {
+			wc_print_notice( __( 'Your password is saved and you are logged in.', 'b2b-contract-portal' ), 'success' );
 		}
-		$company = b2bcp_get_company( b2bcp_active_company_id() );
-		if ( ! $company ) {
-			return;
-		}
-		self::block( $company, wp_get_current_user(), __( 'Your password is saved and you are logged in.', 'b2b-contract-portal' ) );
-		echo '<p><a class="button" href="' . esc_url( wc_get_page_permalink( 'shop' ) ) . '">' . esc_html__( 'See your products', 'b2b-contract-portal' ) . '</a></p>';
 	}
 }
