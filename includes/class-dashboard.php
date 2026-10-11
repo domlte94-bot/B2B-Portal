@@ -22,6 +22,24 @@ class B2BCP_Dashboard {
 	public static function init() {
 		add_filter( 'wc_get_template', array( __CLASS__, 'template' ), 10, 2 );
 		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'menu' ), 30 );
+		add_action( 'template_redirect', array( __CLASS__, 'home_redirect' ) );
+	}
+
+	/**
+	 * The site's front page sends company users to their account home (setting, on by default).
+	 * Store staff are left alone so they can see and edit the public home page.
+	 */
+	public static function home_redirect() {
+		if ( ! is_front_page() || 'no' === get_option( 'b2bcp_home_is_account', 'yes' ) || current_user_can( 'manage_woocommerce' ) || ! b2bcp_active_company_id() ) {
+			return;
+		}
+		$account = wc_get_page_permalink( 'myaccount' );
+		if ( ! $account || is_account_page() ) {
+			return;
+		}
+		nocache_headers();
+		wp_safe_redirect( $account );
+		exit;
 	}
 
 	/**

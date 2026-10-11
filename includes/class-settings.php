@@ -45,6 +45,16 @@ class B2BCP_Settings {
 		);
 		register_setting(
 			'b2bcp_settings',
+			'b2bcp_home_is_account',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => function ( $value ) {
+					return 'no' === $value ? 'no' : 'yes';
+				},
+			)
+		);
+		register_setting(
+			'b2bcp_settings',
 			'b2bcp_welcome_message',
 			array(
 				'type'              => 'string',
@@ -114,6 +124,12 @@ class B2BCP_Settings {
 						<td><input type="hidden" name="b2bcp_company_bar" value="no">
 						<label><input type="checkbox" name="b2bcp_company_bar" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_company_bar', 'yes' ) ); ?>> <?php esc_html_e( 'Show the company logo bar at the top of every page for company users', 'b2b-contract-portal' ); ?></label>
 						<p class="description"><?php esc_html_e( 'If your theme does not show it, place the [b2bcp_company_bar] shortcode where you want it.', 'b2b-contract-portal' ); ?></p></td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Home for company users', 'b2b-contract-portal' ); ?></th>
+						<td><input type="hidden" name="b2bcp_home_is_account" value="no">
+						<label><input type="checkbox" name="b2bcp_home_is_account" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_home_is_account', 'yes' ) ); ?>> <?php esc_html_e( 'Send company users to My account when they open the site\'s home page', 'b2b-contract-portal' ); ?></label>
+						<p class="description"><?php esc_html_e( 'Visitors and store staff still see the normal home page.', 'b2b-contract-portal' ); ?></p></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="b2bcp_welcome_message"><?php esc_html_e( 'Welcome message', 'b2b-contract-portal' ); ?></label></th>
