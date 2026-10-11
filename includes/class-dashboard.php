@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class B2BCP_Dashboard {
 
-	const PRODUCTS = 6;
+	const PRODUCTS = 8;
 	const ORDERS   = 5;
 
 	/**
@@ -81,42 +81,129 @@ class B2BCP_Dashboard {
 		if ( ! $company ) {
 			return;
 		}
-		$user = wp_get_current_user();
+		$user     = wp_get_current_user();
+		$products = self::company_products( $company['id'] );
+		$shop     = wc_get_page_permalink( 'shop' );
 		wp_enqueue_style( 'b2bcp-front' );
 
 		echo '<div class="b2bcp-dashboard">';
-		B2BCP_Welcome::block( $company, $user, '' );
-		self::products( $company );
+		self::hero( $company, $user, $shop );
+		self::stats( $company, $user->ID, count( $products ), $shop );
+		self::products( $products, $shop );
 		self::orders( $user->ID );
-		self::shortcuts( $company );
 		echo '</div>';
 	}
 
 	/**
-	 * The company's products, as the theme's own product grid.
+	 * Published products assigned to the company that this buyer can order, by name.
 	 *
-	 * @param array $company Company.
+	 * @param int $company_id Company.
+	 * @return WC_Product[]
 	 */
-	private static function products( array $company ) {
-		$ids  = array_keys( b2bcp_company_assignments( $company['id'] ) );
-		$shop = wc_get_page_permalink( 'shop' );
-		$grid = '';
-		if ( $ids ) {
-			// The shortcode applies the catalog rules and contract prices like any other product list.
-			$grid = trim( do_shortcode( sprintf( '[products ids="%s" limit="%d" columns="3" orderby="title" order="ASC"]', implode( ',', array_map( 'intval', $ids ) ), self::PRODUCTS ) ) );
+	private static function company_products( $company_id ) {
+		$ids = array_keys( b2bcp_company_assignments( $company_id ) );
+		if ( ! $ids ) {
+			return array();
 		}
+		$products = wc_get_products(
+			array(
+				'include' => array_map( 'intval', $ids ),
+				'status'  => 'publish',
+				'limit'   => -1,
+				'orderby' => 'title',
+				'order'   => 'ASC',
+			)
+		);
+		return array_values( array_filter( (array) $products, array( 'B2BCP_Catalog', 'can_access' ) ) );
+	}
 
-		echo '<section class="b2bcp-dashboard-section">';
-		echo '<h2>' . esc_html__( 'Your products', 'b2b-contract-portal' ) . '</h2>';
-		if ( '' !== $grid ) {
-			echo $grid; // phpcs:ignore WordPress.Security.EscapeOutput -- WooCommerce shortcode output.
-			if ( count( $ids ) > self::PRODUCTS ) {
-				echo '<p><a class="button" href="' . esc_url( $shop ) . '">' . esc_html__( 'See all products', 'b2b-contract-portal' ) . '</a></p>';
-			}
-		} else {
-			echo '<p>' . esc_html__( 'Your company\'s products will appear here as soon as they are ready.', 'b2b-contract-portal' ) . ' <a href="' . esc_url( $shop ) . '">' . esc_html__( 'Go to the shop', 'b2b-contract-portal' ) . '</a></p>';
+	/**
+	 * Colored band with the company logo and the welcome.
+	 *
+	 * @param array   $company Company.
+	 * @param WP_User $user    User.
+	 * @param string  $shop    Shop URL.
+	 */
+	private static function hero( array $company, $user, $shop ) {
+		$logo = $company['logo_id'] ? wp_get_attachment_image_url( $company['logo_id'], 'medium' ) : '';
+		echo '<header class="b2bcp-hero">';
+		if ( $logo ) {
+			echo '<div class="b2bcp-hero-logo"><img src="' . esc_url( $logo ) . '" alt="' . esc_attr( $company['name'] ) . '"></div>';
 		}
-		echo '</section>';
+		echo '<div class="b2bcp-hero-text">';
+		echo '<p class="b2bcp-hero-eyebrow">' . esc_html( $company['name'] ) . '</p>';
+		echo '<h2 class="b2bcp-hero-title">' . esc_html( B2BCP_Welcome::greeting( $user ) ) . '</h2>';
+		echo wp_kses_post( wpautop( esc_html( B2BCP_Welcome::message( $company, $user ) ) ) );
+		echo '</div>';
+		echo '<a class="b2bcp-hero-cta" href="' . esc_url( $shop ) . '">' . esc_html__( 'Browse products', 'b2b-contract-portal' ) . '</a>';
+		echo '</header>';
+	}
+
+	/**
+	 * Three numbers that double as shortcuts.
+	 *
+	 * @param array  $company  Company.
+	 * @param int    $user_id  User.
+	 * @param int    $products Number of products.
+	 * @param string $shop     Shop URL.
+	 */
+	private static function stats( array $company, $user_id, $products, $shop ) {
+		$addresses = count( b2bcp_get_addresses( $company['id'] ) );
+		$orders    = (int) wc_get_customer_order_count( $user_id );
+		$tiles     = array(
+			/* translators: %d: number of products */
+			array( $shop, $products, _n( 'Product for your company', 'Products for your company', $products, 'b2b-contract-portal' ) ),
+			/* translators: %d: number of orders */
+			array( wc_get_account_endpoint_url( 'orders' ), $orders, _n( 'Order placed', 'Orders placed', $orders, 'b2b-contract-portal' ) ),
+			/* translators: %d: number of addresses */
+			array( wc_get_account_endpoint_url( B2BCP_Account::ENDPOINT ), $addresses, _n( 'Shipping address', 'Shipping addresses', $addresses, 'b2b-contract-portal' ) ),
+		);
+		echo '<div class="b2bcp-stats">';
+		foreach ( $tiles as $tile ) {
+			echo '<a class="b2bcp-stat" href="' . esc_url( $tile[0] ) . '"><span class="b2bcp-stat-number">' . esc_html( number_format_i18n( $tile[1] ) ) . '</span><span class="b2bcp-stat-label">' . esc_html( $tile[2] ) . '</span></a>';
+		}
+		echo '</div>';
+	}
+
+	/**
+	 * Product cards.
+	 *
+	 * @param WC_Product[] $products Products.
+	 * @param string       $shop     Shop URL.
+	 */
+	private static function products( array $products, $shop ) {
+		echo '<section class="b2bcp-dashboard-section">';
+		echo '<div class="b2bcp-section-head"><h2>' . esc_html__( 'Your products', 'b2b-contract-portal' ) . '</h2>';
+		if ( count( $products ) > self::PRODUCTS ) {
+			echo '<a href="' . esc_url( $shop ) . '">' . esc_html__( 'See all products', 'b2b-contract-portal' ) . '</a>';
+		}
+		echo '</div>';
+
+		if ( ! $products ) {
+			echo '<p class="b2bcp-empty">' . esc_html__( 'Your company\'s products will appear here as soon as they are ready.', 'b2b-contract-portal' ) . '</p></section>';
+			return;
+		}
+		echo '<div class="b2bcp-cards">';
+		foreach ( array_slice( $products, 0, self::PRODUCTS ) as $product ) {
+			$config = b2bcp_product_config( $product );
+			if ( $config['quote'] ) {
+				$action = __( 'Request a quote', 'b2b-contract-portal' );
+			} elseif ( b2bcp_uses_order_form( $config ) ) {
+				$action = __( 'Customize & order', 'b2b-contract-portal' );
+			} else {
+				$action = __( 'Order', 'b2b-contract-portal' );
+			}
+			echo '<a class="b2bcp-card" href="' . esc_url( $product->get_permalink() ) . '">';
+			echo wp_kses_post( $product->get_image( 'woocommerce_thumbnail' ) );
+			echo '<span class="b2bcp-card-body">';
+			echo '<span class="b2bcp-card-name">' . esc_html( $product->get_name() ) . '</span>';
+			if ( ! $config['quote'] ) {
+				echo '<span class="b2bcp-card-price">' . wp_kses_post( $product->get_price_html() ) . '</span>';
+			}
+			echo '<span class="b2bcp-card-action">' . esc_html( $action ) . '</span>';
+			echo '</span></a>';
+		}
+		echo '</div></section>';
 	}
 
 	/**
@@ -136,58 +223,25 @@ class B2BCP_Dashboard {
 		);
 
 		echo '<section class="b2bcp-dashboard-section">';
-		echo '<h2>' . esc_html__( 'Recent orders', 'b2b-contract-portal' ) . '</h2>';
+		echo '<div class="b2bcp-section-head"><h2>' . esc_html__( 'Recent orders', 'b2b-contract-portal' ) . '</h2>';
+		if ( $orders ) {
+			echo '<a href="' . esc_url( wc_get_account_endpoint_url( 'orders' ) ) . '">' . esc_html__( 'All orders', 'b2b-contract-portal' ) . '</a>';
+		}
+		echo '</div>';
 		if ( ! $orders ) {
-			echo '<p>' . esc_html__( 'You have not placed any orders yet.', 'b2b-contract-portal' ) . '</p></section>';
+			echo '<p class="b2bcp-empty">' . esc_html__( 'You have not placed any orders yet. Your orders will show here with their status.', 'b2b-contract-portal' ) . '</p></section>';
 			return;
 		}
-		echo '<table class="shop_table shop_table_responsive b2bcp-dashboard-orders"><thead><tr>';
-		foreach ( array( __( 'Order', 'b2b-contract-portal' ), __( 'Date', 'b2b-contract-portal' ), __( 'Status', 'b2b-contract-portal' ), __( 'Total', 'b2b-contract-portal' ), '' ) as $heading ) {
-			echo '<th>' . esc_html( $heading ) . '</th>';
-		}
-		echo '</tr></thead><tbody>';
+		echo '<ul class="b2bcp-order-list">';
 		foreach ( $orders as $order ) {
 			$date = $order->get_date_created();
-			echo '<tr>';
-			echo '<td data-title="' . esc_attr__( 'Order', 'b2b-contract-portal' ) . '"><a href="' . esc_url( $order->get_view_order_url() ) . '">#' . esc_html( $order->get_order_number() ) . '</a></td>';
-			echo '<td data-title="' . esc_attr__( 'Date', 'b2b-contract-portal' ) . '">' . esc_html( $date ? wc_format_datetime( $date ) : '' ) . '</td>';
-			echo '<td data-title="' . esc_attr__( 'Status', 'b2b-contract-portal' ) . '">' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</td>';
-			echo '<td data-title="' . esc_attr__( 'Total', 'b2b-contract-portal' ) . '">' . wp_kses_post( $order->get_formatted_order_total() ) . '</td>';
-			echo '<td><a class="button" href="' . esc_url( $order->get_view_order_url() ) . '">' . esc_html__( 'View', 'b2b-contract-portal' ) . '</a></td>';
-			echo '</tr>';
+			echo '<li><a href="' . esc_url( $order->get_view_order_url() ) . '">';
+			echo '<span class="b2bcp-order-number">#' . esc_html( $order->get_order_number() ) . '</span>';
+			echo '<span class="b2bcp-order-date">' . esc_html( $date ? wc_format_datetime( $date ) : '' ) . '</span>';
+			echo '<span class="b2bcp-status b2bcp-status-' . esc_attr( $order->get_status() ) . '">' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</span>';
+			echo '<span class="b2bcp-order-total">' . wp_kses_post( $order->get_formatted_order_total() ) . '</span>';
+			echo '</a></li>';
 		}
-		echo '</tbody></table>';
-		echo '<p><a href="' . esc_url( wc_get_account_endpoint_url( 'orders' ) ) . '">' . esc_html__( 'All orders', 'b2b-contract-portal' ) . '</a></p>';
-		echo '</section>';
-	}
-
-	/**
-	 * Shortcuts to the company's addresses and the buyer's own details.
-	 *
-	 * @param array $company Company.
-	 */
-	private static function shortcuts( array $company ) {
-		$addresses = count( b2bcp_get_addresses( $company['id'] ) );
-		$links     = array(
-			array(
-				wc_get_account_endpoint_url( B2BCP_Account::ENDPOINT ),
-				__( 'Shipping addresses', 'b2b-contract-portal' ),
-				/* translators: %d: number of addresses */
-				sprintf( _n( '%d address saved for your company', '%d addresses saved for your company', $addresses, 'b2b-contract-portal' ), $addresses ),
-			),
-			array(
-				wc_get_account_endpoint_url( 'edit-account' ),
-				__( 'Account details', 'b2b-contract-portal' ),
-				__( 'Your name, email and password', 'b2b-contract-portal' ),
-			),
-		);
-
-		echo '<section class="b2bcp-dashboard-section">';
-		echo '<h2>' . esc_html__( 'Quick links', 'b2b-contract-portal' ) . '</h2>';
-		echo '<div class="b2bcp-dashboard-links">';
-		foreach ( $links as $link ) {
-			echo '<a class="b2bcp-dashboard-link" href="' . esc_url( $link[0] ) . '"><strong>' . esc_html( $link[1] ) . '</strong><span>' . esc_html( $link[2] ) . '</span></a>';
-		}
-		echo '</div></section>';
+		echo '</ul></section>';
 	}
 }

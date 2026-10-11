@@ -6,7 +6,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 WC requires at least: 8.0
 WC tested up to: 10.2
-Stable tag: 0.3.6
+Stable tag: 0.3.7
 License: GPLv2 or later
 
 Contract customers for print and promo shops: client companies, exclusive catalogs and prices, products with parts, per-person names and titles, many addresses in one order.
@@ -44,6 +44,9 @@ Contract prices apply to all variations of a product. Personalization, parts and
 They choose which company they are ordering for in My Account → Company. Catalog, prices and cart follow that choice.
 
 == Changelog ==
+
+= 0.3.7 =
+* Redesigned account home for company users: banner in the company color with its logo, shortcut tiles, product cards, orders with status, and a tidier account menu.
 
 = 0.3.6 =
 * Company users who open the site's home page are sent to My account (can be turned off in Settings).

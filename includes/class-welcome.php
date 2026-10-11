@@ -159,12 +159,23 @@ class B2BCP_Welcome {
 	}
 
 	/**
+	 * "Welcome, Ana" heading.
+	 *
+	 * @param WP_User $user User.
+	 * @return string
+	 */
+	public static function greeting( $user ) {
+		/* translators: %s: first name */
+		return sprintf( __( 'Welcome, %s', 'b2b-contract-portal' ), $user->first_name ? $user->first_name : $user->display_name );
+	}
+
+	/**
 	 * Welcome text used when the store has not written its own.
 	 *
 	 * @return string
 	 */
 	public static function default_message() {
-		return __( 'Welcome, {name}. {store} set up an ordering account for {company}. Here you will find your company\'s products at your contract prices.', 'b2b-contract-portal' );
+		return __( '{store} set up an ordering account for {company}. Here you will find your company\'s products at your contract prices.', 'b2b-contract-portal' );
 	}
 
 	/**
@@ -181,6 +192,7 @@ class B2BCP_Welcome {
 		if ( $logo ) {
 			echo '<img class="b2bcp-welcome-logo" src="' . esc_url( $logo ) . '" alt="' . esc_attr( $company['name'] ) . '">';
 		}
+		echo '<h2 class="b2bcp-welcome-title">' . esc_html( self::greeting( $user ) ) . '</h2>';
 		echo wp_kses_post( wpautop( esc_html( self::message( $company, $user ) ) ) );
 		if ( '' !== $after ) {
 			echo '<p><strong>' . esc_html( $after ) . '</strong></p>';

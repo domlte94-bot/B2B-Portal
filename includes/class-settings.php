@@ -134,7 +134,7 @@ class B2BCP_Settings {
 					<tr>
 						<th scope="row"><label for="b2bcp_welcome_message"><?php esc_html_e( 'Welcome message', 'b2b-contract-portal' ); ?></label></th>
 						<td><textarea class="large-text" rows="4" id="b2bcp_welcome_message" name="b2bcp_welcome_message" placeholder="<?php echo esc_attr( B2BCP_Welcome::default_message() ); ?>"><?php echo esc_textarea( (string) get_option( 'b2bcp_welcome_message', '' ) ); ?></textarea>
-						<p class="description"><?php esc_html_e( 'Shown to an invited user when they open the invitation to choose their password, and again right after. Use {name}, {company} and {store}. Empty = the text shown in grey.', 'b2b-contract-portal' ); ?></p></td>
+						<p class="description"><?php esc_html_e( 'Shown under "Welcome, name" when an invited user chooses their password and on their account home. You can use {name}, {company} and {store}. Empty = the text shown in grey.', 'b2b-contract-portal' ); ?></p></td>
 					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Invoice payment', 'b2b-contract-portal' ); ?></th>
