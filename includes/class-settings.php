@@ -45,6 +45,14 @@ class B2BCP_Settings {
 		);
 		register_setting(
 			'b2bcp_settings',
+			'b2bcp_welcome_message',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_textarea_field',
+			)
+		);
+		register_setting(
+			'b2bcp_settings',
 			'b2bcp_company_bar',
 			array(
 				'type'              => 'string',
@@ -106,6 +114,11 @@ class B2BCP_Settings {
 						<td><input type="hidden" name="b2bcp_company_bar" value="no">
 						<label><input type="checkbox" name="b2bcp_company_bar" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_company_bar', 'yes' ) ); ?>> <?php esc_html_e( 'Show the company logo bar at the top of every page for company users', 'b2b-contract-portal' ); ?></label>
 						<p class="description"><?php esc_html_e( 'If your theme does not show it, place the [b2bcp_company_bar] shortcode where you want it.', 'b2b-contract-portal' ); ?></p></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="b2bcp_welcome_message"><?php esc_html_e( 'Welcome message', 'b2b-contract-portal' ); ?></label></th>
+						<td><textarea class="large-text" rows="4" id="b2bcp_welcome_message" name="b2bcp_welcome_message" placeholder="<?php echo esc_attr( B2BCP_Welcome::default_message() ); ?>"><?php echo esc_textarea( (string) get_option( 'b2bcp_welcome_message', '' ) ); ?></textarea>
+						<p class="description"><?php esc_html_e( 'Shown to an invited user when they open the invitation to choose their password, and again right after. Use {name}, {company} and {store}. Empty = the text shown in grey.', 'b2b-contract-portal' ); ?></p></td>
 					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Invoice payment', 'b2b-contract-portal' ); ?></th>

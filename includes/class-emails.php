@@ -120,13 +120,15 @@ class B2BCP_Emails {
 		if ( $is_new ) {
 			$key = get_password_reset_key( $user );
 			if ( ! is_wp_error( $key ) ) {
+				// The extra argument turns WooCommerce's set-password screen into the welcome page (B2BCP_Welcome).
 				$cta_url   = add_query_arg(
 					array(
 						'key' => $key,
 						'id'  => $user->ID,
-					),
+					) + B2BCP_Welcome::link_args( $company_id ),
 					wc_get_endpoint_url( 'lost-password', '', $account )
 				);
+				B2BCP_Welcome::mark_pending( $user->ID, $company_id );
 				$cta_label = __( 'Set your password', 'b2b-contract-portal' );
 			}
 		}

@@ -393,3 +393,14 @@ body.b2bcp-branded .b2bcp-company-head h2 {
 .b2bcp-new-address-status {
 	font-size: 0.9em;
 }
+
+.b2bcp-welcome {
+	margin: 0 0 1.5em;
+}
+
+.b2bcp-welcome-logo {
+	display: block;
+	max-height: 64px;
+	width: auto;
+	margin: 0 0 1em;
+}

@@ -38,6 +38,7 @@ includes/class-branding.php  company bar + accent CSS variables
 includes/class-account.php   My Account → Company endpoint (switch company, addresses) + AJAX b2bcp_add_address
 includes/class-quotes.php    quote products, form, CPT b2bcp_quote, admin screens
 includes/class-emails.php    invitation, quote emails (via WC mailer), company header + extra recipients on order emails
+includes/class-welcome.php   invitation link → welcome page on WooCommerce's set-password screen (cookie b2bcp_invite, user meta _b2bcp_invite_pending), auto-login, week-long key
 includes/class-export.php    production sheet CSV (order box + bulk action)
 includes/class-settings.php  B2B Portal → Settings
 includes/class-updater.php   one-click updates from GitHub releases (header `Update URI` + `update_plugins_github.com` filter)
