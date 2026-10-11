@@ -160,9 +160,11 @@ class B2BCP_Emails {
 		$bg  = $bg ? $bg : '#7f54b3';
 		$ink = b2bcp_text_on( $bg );
 		$url = esc_url( $url );
-		return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;"><tr><td>'
-			. '<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="' . $url . '" style="height:44px;v-text-anchor:middle;width:240px;" arcsize="10%" stroke="f" fillcolor="' . esc_attr( $bg ) . '"><w:anchorlock/><center style="color:' . esc_attr( $ink ) . ';font-family:Arial,sans-serif;font-size:15px;font-weight:bold;">' . esc_html( $label ) . '</center></v:roundrect><![endif]-->'
-			. '<!--[if !mso]><!--><a href="' . $url . '" style="background-color:' . esc_attr( $bg ) . ';border-radius:4px;color:' . esc_attr( $ink ) . ';display:inline-block;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;line-height:44px;text-align:center;text-decoration:none;padding:0 24px;">' . esc_html( $label ) . '</a><!--<![endif]-->'
+		// No Outlook conditional comments: WooCommerce's CSS inliner breaks them and leaves "<!--" showing after the button.
+		// A colored cell with a padded link renders as a button everywhere (square corners in Outlook).
+		return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;"><tr>'
+			. '<td bgcolor="' . esc_attr( $bg ) . '" style="background-color:' . esc_attr( $bg ) . ';border-radius:4px;">'
+			. '<a href="' . $url . '" style="color:' . esc_attr( $ink ) . ';display:inline-block;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;line-height:20px;text-decoration:none;padding:12px 24px;">' . esc_html( $label ) . '</a>'
 			. '</td></tr></table>';
 	}
 
