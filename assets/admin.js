@@ -56,6 +56,11 @@
 		}
 	} );
 
+	// Users marked for removal are struck through until the company is saved.
+	$( document ).on( 'change', '.b2bcp-remove-user input', function () {
+		$( this ).closest( 'tr' ).toggleClass( 'b2bcp-removing', this.checked );
+	} );
+
 	// Company logo picker.
 	var frame;
 	$( document ).on( 'click', '.b2bcp-logo-pick', function ( e ) {

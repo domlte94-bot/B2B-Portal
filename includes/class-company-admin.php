@@ -363,18 +363,19 @@ class B2BCP_Company_Admin {
 		?>
 		<?php if ( $users ) : ?>
 			<table class="widefat striped">
-				<thead><tr><th><?php esc_html_e( 'User', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Email', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Company admin', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Remove from company', 'b2b-contract-portal' ); ?></th></tr></thead>
+				<thead><tr><th><?php esc_html_e( 'User', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Email', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Company admin', 'b2b-contract-portal' ); ?></th><th><?php esc_html_e( 'Access', 'b2b-contract-portal' ); ?></th></tr></thead>
 				<tbody>
 				<?php foreach ( $users as $user ) : ?>
 					<tr>
 						<td><a href="<?php echo esc_url( get_edit_user_link( $user->ID ) ); ?>"><?php echo esc_html( $user->display_name ); ?></a></td>
 						<td><?php echo esc_html( $user->user_email ); ?></td>
 						<td><input type="checkbox" name="b2bcp_users[<?php echo (int) $user->ID; ?>][admin]" value="1" <?php checked( b2bcp_user_is_company_admin( $user->ID, $post->ID ) ); ?>><input type="hidden" name="b2bcp_users[<?php echo (int) $user->ID; ?>][keep]" value="1"></td>
-						<td><input type="checkbox" name="b2bcp_users[<?php echo (int) $user->ID; ?>][remove]" value="1"></td>
+						<td><label class="b2bcp-remove-user"><input type="checkbox" name="b2bcp_users[<?php echo (int) $user->ID; ?>][remove]" value="1"> <?php esc_html_e( 'Remove from this company', 'b2b-contract-portal' ); ?></label></td>
 					</tr>
 				<?php endforeach; ?>
 				</tbody>
 			</table>
+			<p class="description"><?php esc_html_e( 'To remove someone, tick "Remove from this company" and click Update. They can no longer see or order this company\'s products; their account and past orders are kept.', 'b2b-contract-portal' ); ?></p>
 		<?php else : ?>
 			<p><?php esc_html_e( 'No users yet.', 'b2b-contract-portal' ); ?></p>
 		<?php endif; ?>

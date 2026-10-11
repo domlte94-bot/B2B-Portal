@@ -36,3 +36,5 @@
 #b2bcp_product_data ul.description li { margin: 2px 0; }
 .b2bcp-field-builder td[hidden], .b2bcp-field-builder input[hidden] { display: none; }
 .b2bcp-field-builder .b2bcp-col-options input { width: 100%; }
+.b2bcp-remove-user { color: #b32d2e; white-space: nowrap; }
+tr.b2bcp-removing td:not(:last-child) { opacity: 0.5; text-decoration: line-through; }
