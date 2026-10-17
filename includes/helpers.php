@@ -389,6 +389,10 @@ function b2bcp_product_config( $product ) {
 		'parts'           => $parts,
 		'parts_alone'     => (bool) array_filter( wp_list_pluck( $parts, 'alone' ) ),
 		'quote'           => 'yes' === get_post_meta( $id, '_b2bcp_quote', true ),
+		'group'           => 'yes' === get_post_meta( $id, '_b2bcp_group', true ),
+		'group_named'     => array_values( array_filter( array_map( 'intval', (array) get_post_meta( $id, '_b2bcp_group_named', true ) ) ) ),
+		'group_qty'       => array_values( array_filter( array_map( 'intval', (array) get_post_meta( $id, '_b2bcp_group_qty', true ) ) ) ),
+		'group_quote'     => (int) get_post_meta( $id, '_b2bcp_group_quote', true ),
 		'quote_fields'    => is_array( $quote_fields ) ? $quote_fields : array(),
 	);
 
@@ -443,7 +447,7 @@ function b2bcp_normalize_parts( $raw, $parent_id = 0 ) {
  * @return bool
  */
 function b2bcp_uses_order_form( array $config ) {
-	return ! $config['quote'] && ( $config['personalized'] || $config['multiaddress'] || $config['has_parts'] );
+	return ! $config['quote'] && ( $config['personalized'] || $config['multiaddress'] || $config['has_parts'] || $config['group'] );
 }
 
 /**
@@ -518,8 +522,27 @@ function b2bcp_company_can_access( $product_id, $company_id ) {
 				return true;
 			}
 		}
+		// Products offered on an order page the company can open.
+		if ( $main['group'] && in_array( (int) $product_id, b2bcp_group_product_ids( $main ), true ) ) {
+			return true;
+		}
 	}
 	return false;
+}
+
+/**
+ * Products offered on an order page (parent ids for variations).
+ *
+ * @param array $config Order page product config.
+ * @return int[]
+ */
+function b2bcp_group_product_ids( array $config ) {
+	$ids = array();
+	foreach ( array_merge( $config['group_named'], $config['group_qty'] ) as $id ) {
+		$parent = (int) wp_get_post_parent_id( $id );
+		$ids[]  = 'product_variation' === get_post_type( $id ) && $parent ? $parent : (int) $id;
+	}
+	return array_values( array_unique( $ids ) );
 }
 
 /**

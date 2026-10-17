@@ -165,6 +165,47 @@ class B2BCP_Product_Admin {
 			</div>
 
 			<div class="options_group">
+				<p class="b2bcp-row"><label class="b2bcp-toggle"><input type="checkbox" name="b2bcp_group" value="yes" data-b2bcp-toggle="#b2bcp-group" <?php checked( $config['group'] ); ?>> <strong><?php esc_html_e( 'Order page for several products', 'b2b-contract-portal' ); ?></strong> &mdash; <?php esc_html_e( 'e.g. a desk bar page where each name picks "insert only" or "desk bar + insert", plus extra items by quantity', 'b2b-contract-portal' ); ?></label></p>
+				<div class="b2bcp-inner" id="b2bcp-group">
+					<p class="b2bcp-row">
+						<label for="b2bcp_group_named"><strong><?php esc_html_e( 'Products with names', 'b2b-contract-portal' ); ?></strong></label><br>
+						<select id="b2bcp_group_named" class="wc-product-search" multiple="multiple" style="width:100%" name="b2bcp_group_named[]" data-placeholder="<?php esc_attr_e( 'Search for products…', 'b2b-contract-portal' ); ?>" data-action="woocommerce_json_search_products">
+							<?php foreach ( $config['group_named'] as $id ) : ?>
+								<?php $item = wc_get_product( $id ); ?>
+								<?php if ( $item ) : ?>
+									<option value="<?php echo (int) $id; ?>" selected><?php echo esc_html( wp_strip_all_tags( $item->get_formatted_name() ) ); ?></option>
+								<?php endif; ?>
+							<?php endforeach; ?>
+						</select>
+						<span class="description"><?php esc_html_e( 'Each name row picks one of these. The row asks for this product\'s personalization fields above (and each chosen product\'s own fields, if it has them).', 'b2b-contract-portal' ); ?></span>
+					</p>
+					<p class="b2bcp-row">
+						<label for="b2bcp_group_qty"><strong><?php esc_html_e( 'Products by quantity', 'b2b-contract-portal' ); ?></strong></label><br>
+						<select id="b2bcp_group_qty" class="wc-product-search" multiple="multiple" style="width:100%" name="b2bcp_group_qty[]" data-placeholder="<?php esc_attr_e( 'Search for products or variations…', 'b2b-contract-portal' ); ?>" data-action="woocommerce_json_search_products_and_variations">
+							<?php foreach ( $config['group_qty'] as $id ) : ?>
+								<?php $item = wc_get_product( $id ); ?>
+								<?php if ( $item ) : ?>
+									<option value="<?php echo (int) $id; ?>" selected><?php echo esc_html( wp_strip_all_tags( $item->get_formatted_name() ) ); ?></option>
+								<?php endif; ?>
+							<?php endforeach; ?>
+						</select>
+						<span class="description"><?php esc_html_e( 'Shown as cards with − / + (no names). Pick variations to show e.g. "one-sided" and "two-sided" as separate cards. Products that need names cannot go here.', 'b2b-contract-portal' ); ?></span>
+					</p>
+					<p class="b2bcp-row">
+						<label for="b2bcp_group_quote"><strong><?php esc_html_e( 'Custom version (optional)', 'b2b-contract-portal' ); ?></strong></label><br>
+						<select id="b2bcp_group_quote" class="wc-product-search" style="width:100%" name="b2bcp_group_quote" data-placeholder="<?php esc_attr_e( 'A quote-request product…', 'b2b-contract-portal' ); ?>" data-action="woocommerce_json_search_products" data-allow_clear="true">
+							<?php $quote_product = $config['group_quote'] ? wc_get_product( $config['group_quote'] ) : null; ?>
+							<?php if ( $quote_product ) : ?>
+								<option value="<?php echo (int) $quote_product->get_id(); ?>" selected><?php echo esc_html( wp_strip_all_tags( $quote_product->get_formatted_name() ) ); ?></option>
+							<?php endif; ?>
+						</select>
+						<span class="description"><?php esc_html_e( 'Adds a choice at the top: "Standard order" (this page) or "Custom quote request" (opens that product\'s quote form).', 'b2b-contract-portal' ); ?></span>
+					</p>
+					<p class="description"><?php esc_html_e( 'Each product ordered here goes into the cart as its own line, at its own (contract) price. This product itself is never added to the cart and does not need a price.', 'b2b-contract-portal' ); ?></p>
+				</div>
+			</div>
+
+			<div class="options_group">
 				<p class="b2bcp-row"><label class="b2bcp-toggle"><input type="checkbox" name="b2bcp_quote" value="yes" data-b2bcp-toggle="#b2bcp-quote" <?php checked( $config['quote'] ); ?>> <strong><?php esc_html_e( 'Quote request only', 'b2b-contract-portal' ); ?></strong> &mdash; <?php esc_html_e( 'no price or cart; visitors fill a form and the request comes to you', 'b2b-contract-portal' ); ?></label></p>
 				<div class="b2bcp-inner" id="b2bcp-quote">
 					<?php B2BCP_Fields::render_builder( 'b2bcp_quote_fields', $config['quote_fields'], 'quote' ); ?>
@@ -248,6 +289,26 @@ class B2BCP_Product_Admin {
 		$product->update_meta_data( '_b2bcp_min_per_address', absint( $_POST['b2bcp_min_per_address'] ?? 0 ) );
 		$product->update_meta_data( '_b2bcp_has_parts', isset( $_POST['b2bcp_has_parts'] ) ? 'yes' : 'no' );
 		$product->update_meta_data( '_b2bcp_quote', isset( $_POST['b2bcp_quote'] ) ? 'yes' : 'no' );
+		$product->update_meta_data( '_b2bcp_group', isset( $_POST['b2bcp_group'] ) ? 'yes' : 'no' );
+		$named = array();
+		foreach ( (array) ( $_POST['b2bcp_group_named'] ?? array() ) as $item_id ) {
+			$item_id = absint( $item_id );
+			if ( $item_id && $item_id !== $id && wc_get_product( $item_id ) ) {
+				$named[] = $item_id;
+			}
+		}
+		$by_qty = array();
+		foreach ( (array) ( $_POST['b2bcp_group_qty'] ?? array() ) as $item_id ) {
+			$item_id = absint( $item_id );
+			$item    = $item_id && $item_id !== $id ? wc_get_product( $item_id ) : null;
+			// Products that need names or a form of their own cannot be ordered by a plain quantity.
+			if ( $item && ! $item->is_type( 'variable' ) && ! b2bcp_uses_order_form( b2bcp_product_config( $item ) ) ) {
+				$by_qty[] = $item_id;
+			}
+		}
+		$product->update_meta_data( '_b2bcp_group_named', array_values( array_unique( $named ) ) );
+		$product->update_meta_data( '_b2bcp_group_qty', array_values( array_unique( $by_qty ) ) );
+		$product->update_meta_data( '_b2bcp_group_quote', absint( $_POST['b2bcp_group_quote'] ?? 0 ) );
 		$product->update_meta_data( '_b2bcp_quote_fields', B2BCP_Fields::sanitize_definitions( $_POST['b2bcp_quote_fields'] ?? array(), 'quote' ) );
 
 		$parts = array();
@@ -310,6 +371,9 @@ class B2BCP_Product_Admin {
 		if ( 'restricted' === $config['visibility'] && ! $config['template'] && ! $config['owner_company'] ) {
 			/* translators: %d: number of companies */
 			$tags[] = sprintf( _n( 'Exclusive (%d company)', 'Exclusive (%d companies)', count( b2bcp_product_assignments( $post_id ) ), 'b2b-contract-portal' ), count( b2bcp_product_assignments( $post_id ) ) );
+		}
+		if ( $config['group'] ) {
+			$tags[] = __( 'Order page', 'b2b-contract-portal' );
 		}
 		if ( $config['has_parts'] ) {
 			/* translators: %d: number of parts */
