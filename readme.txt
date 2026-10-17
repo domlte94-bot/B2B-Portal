@@ -6,7 +6,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 WC requires at least: 8.0
 WC tested up to: 10.2
-Stable tag: 0.3.8
+Stable tag: 0.3.9
 License: GPLv2 or later
 
 Contract customers for print and promo shops: client companies, exclusive catalogs and prices, products with parts, per-person names and titles, many addresses in one order.
@@ -44,6 +44,9 @@ Contract prices apply to all variations of a product. Personalization, parts and
 They choose which company they are ordering for in My Account → Company. Catalog, prices and cart follow that choice.
 
 == Changelog ==
+
+= 0.3.9 =
+* Checkout for company buyers: when the company has a billing address, billing shows as a summary (company, buyer, bill-to, ship-to) instead of a form. Company buyers always get the classic checkout.
 
 = 0.3.8 =
 * Block Checkout no longer asks for a shipping address again when items already ship to saved addresses: those carts get the classic checkout, with one shipping line per address (B2B Portal → Settings → Checkout to turn off).

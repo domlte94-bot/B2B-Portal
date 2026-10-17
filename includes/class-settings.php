@@ -149,8 +149,8 @@ class B2BCP_Settings {
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Checkout', 'b2b-contract-portal' ); ?></th>
 						<td><input type="hidden" name="b2bcp_classic_checkout" value="no">
-						<label><input type="checkbox" name="b2bcp_classic_checkout" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_classic_checkout', 'yes' ) ); ?>> <?php esc_html_e( 'Use the classic checkout when items already ship to saved addresses', 'b2b-contract-portal' ); ?></label>
-						<p class="description"><?php esc_html_e( 'The block Checkout always asks for a shipping address, even when every item already has one. With this on, those carts get the classic checkout, which skips it and shows one shipping line per address. Carts without saved addresses keep the block Checkout.', 'b2b-contract-portal' ); ?></p></td>
+						<label><input type="checkbox" name="b2bcp_classic_checkout" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_classic_checkout', 'yes' ) ); ?>> <?php esc_html_e( 'Use the classic checkout for company buyers and for items that ship to saved addresses', 'b2b-contract-portal' ); ?></label>
+						<p class="description"><?php esc_html_e( 'The block Checkout always asks for billing and shipping addresses. With this on, company buyers get the classic checkout: when their company has a billing address it shows as a summary instead of a form, and items that ship to saved addresses are not asked again. Other shoppers keep the block Checkout.', 'b2b-contract-portal' ); ?></p></td>
 					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Invoice payment', 'b2b-contract-portal' ); ?></th>
