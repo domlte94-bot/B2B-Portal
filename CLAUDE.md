@@ -61,6 +61,8 @@ Sites update with WordPress's normal "Update now": `class-updater.php` reads the
 2. Build the zip with the plugin inside a `b2b-contract-portal/` folder, leaving out everything in `.distignore`.
 3. `gh release create 0.3.1 b2b-contract-portal-0.3.1.zip --title 0.3.1 --notes "…"`. The tag must be the version number and the zip name must start with `b2b-contract-portal`; a release without that zip is ignored.
 
+If the GitHub API refuses (60 calls/hour per IP, shared on HostGator), the updater falls back to the `releases/latest` redirect and builds the zip URL from the name convention, so keep naming the asset `b2b-contract-portal-<version>.zip`.
+
 The repo is public, so anyone can download releases. Selling it will need a private repo and a license server instead of this updater.
 
 ## Testing

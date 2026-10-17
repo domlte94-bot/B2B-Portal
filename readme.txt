@@ -6,7 +6,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 WC requires at least: 8.0
 WC tested up to: 10.2
-Stable tag: 0.3.10
+Stable tag: 0.3.11
 License: GPLv2 or later
 
 Contract customers for print and promo shops: client companies, exclusive catalogs and prices, products with parts, per-person names and titles, many addresses in one order.
@@ -44,6 +44,9 @@ Contract prices apply to all variations of a product. Personalization, parts and
 They choose which company they are ordering for in My Account → Company. Catalog, prices and cart follow that choice.
 
 == Changelog ==
+
+= 0.3.11 =
+* Updates: when GitHub's API limit is reached (common on shared hosting), the update check reads the latest release page instead; a failed check is retried after 10 minutes instead of an hour.
 
 = 0.3.10 =
 * Order form: choose "Ship everyone to" one address or "Choose an address for each person"; the per-person address only shows in the second case. With a single address and no way to add more, the form just says where it ships.

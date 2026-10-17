@@ -126,8 +126,40 @@ class B2BCP_Updater {
 			}
 		}
 
+		// The API allows 60 calls an hour per server IP, and shared hosting shares that IP with
+		// other sites: when it says no, read the version from the public "latest release" page.
+		if ( ! $release ) {
+			$release = self::latest_from_page();
+		}
+
 		// An empty array remembers "nothing usable" so a failed lookup is not repeated on every page.
-		set_site_transient( self::TRANSIENT, $release, HOUR_IN_SECONDS );
+		set_site_transient( self::TRANSIENT, $release, $release ? HOUR_IN_SECONDS : 10 * MINUTE_IN_SECONDS );
 		return $release ? $release : null;
+	}
+
+	/**
+	 * Latest release from github.com/…/releases/latest, which redirects to the release's tag.
+	 * The zip URL follows the release convention: b2b-contract-portal-<version>.zip.
+	 *
+	 * @return array version, url, package, notes; empty when it cannot be read.
+	 */
+	private static function latest_from_page() {
+		$response = wp_remote_head(
+			'https://github.com/' . self::REPO . '/releases/latest',
+			array(
+				'timeout'     => 10,
+				'redirection' => 0,
+			)
+		);
+		$location = is_wp_error( $response ) ? '' : (string) wp_remote_retrieve_header( $response, 'location' );
+		if ( ! preg_match( '#/releases/tag/(v?(\d+(?:\.\d+)+))$#i', $location, $m ) ) {
+			return array();
+		}
+		return array(
+			'version' => $m[2],
+			'url'     => esc_url_raw( $location ),
+			'package' => esc_url_raw( 'https://github.com/' . self::REPO . '/releases/download/' . $m[1] . '/b2b-contract-portal-' . $m[2] . '.zip' ),
+			'notes'   => '',
+		);
 	}
 }
