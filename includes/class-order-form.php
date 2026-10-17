@@ -81,7 +81,7 @@ class B2BCP_Order_Form {
 	}
 
 	/**
-	 * Small picture, name, price and short description above the form.
+	 * Name, price and short description above the form.
 	 */
 	public static function order_page_header() {
 		global $product;
@@ -89,8 +89,8 @@ class B2BCP_Order_Form {
 			return;
 		}
 		$excerpt = apply_filters( 'woocommerce_short_description', $product->get_short_description() ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- WooCommerce hook.
+		// The picture shows large in the form (B2BCP_Order_Form::product_picture), not here.
 		echo '<header class="b2bcp-order-head">';
-		echo wp_kses_post( $product->get_image( 'woocommerce_thumbnail', array( 'class' => 'b2bcp-order-head-image' ) ) );
 		echo '<div class="b2bcp-order-head-text">';
 		echo '<h1 class="product_title entry-title">' . esc_html( $product->get_name() ) . '</h1>';
 		echo '<p class="price">' . wp_kses_post( $product->get_price_html() ) . '</p>';
@@ -164,7 +164,7 @@ class B2BCP_Order_Form {
 			return;
 		}
 		if ( $config['group'] ) {
-			self::render_group( $config );
+			self::render_group( $product, $config );
 			return;
 		}
 
@@ -194,12 +194,14 @@ class B2BCP_Order_Form {
 		$ship_each   = count( array_unique( $row_ids ) ) > 1;
 		$ship_one    = $is_split && ! $ship_each;
 		$has_ship    = $config['multiaddress'];
-		$preview     = $fields && $company && 'no' !== get_post_meta( $config['id'], '_b2bcp_preview', true ) ? array_slice( array_values( array_filter( $fields, array( __CLASS__, 'previewable' ) ) ), 0, 2 ) : array();
 		?>
 		<div class="b2bcp-order<?php echo $controls_qty ? '' : ' b2bcp-order-single'; ?>" data-controls-qty="<?php echo $controls_qty ? '1' : '0'; ?>">
 			<input type="hidden" name="b2bcp_form" value="1">
 
 			<div class="b2bcp-order-side">
+				<?php if ( ! $fields ) : ?>
+					<?php self::product_picture( $product ); ?>
+				<?php endif; ?>
 				<?php if ( $parts ) : ?>
 					<fieldset class="b2bcp-parts-box">
 						<legend><?php esc_html_e( 'Includes', 'b2b-contract-portal' ); ?></legend>
@@ -273,9 +275,7 @@ class B2BCP_Order_Form {
 						<fieldset class="b2bcp-people<?php echo $ship_one ? ' b2bcp-ship-one' : ''; ?>" data-own-keys="<?php echo esc_attr( implode( ' ', $own_keys ) ); ?>">
 							<legend><?php esc_html_e( 'Names for this order', 'b2b-contract-portal' ); ?></legend>
 							<p class="b2bcp-hint"><?php esc_html_e( 'One entry per person — each entry is 1 unit.', 'b2b-contract-portal' ); ?></p>
-							<?php if ( $preview ) : ?>
-								<?php self::preview( $company, $preview ); ?>
-							<?php endif; ?>
+							<?php self::product_picture( $product ); ?>
 							<div class="b2bcp-people-list">
 								<?php
 								foreach ( array_values( $rows ) as $i => $row ) {
@@ -334,9 +334,10 @@ class B2BCP_Order_Form {
 	 * Order page for several products: named rows that each pick a product, quantity cards,
 	 * shipping, who orders, and a live summary.
 	 *
-	 * @param array $config Order page config.
+	 * @param WC_Product $product Order page product.
+	 * @param array      $config  Order page config.
 	 */
-	private static function render_group( array $config ) {
+	private static function render_group( WC_Product $product, array $config ) {
 		$company_id = b2bcp_active_company_id();
 		$company    = $company_id ? b2bcp_get_company( $company_id ) : null;
 		$named      = self::group_products( $config['group_named'] );
@@ -366,7 +367,6 @@ class B2BCP_Order_Form {
 		$row_ids   = array_values( array_filter( array_map( 'absint', wp_list_pluck( array_filter( $rows, 'is_array' ), '_address' ) ) ) );
 		$ship_each = count( array_unique( $row_ids ) ) > 1;
 		$ship_to   = $post_ship ? $post_ship : ( $row_ids ? $row_ids[0] : ( 1 === count( $addresses ) ? (int) $addresses[0]['id'] : 0 ) );
-		$preview   = $fields && $company && 'no' !== get_post_meta( $config['id'], '_b2bcp_preview', true ) ? array_slice( array_values( array_filter( $fields, array( __CLASS__, 'previewable' ) ) ), 0, 2 ) : array();
 		$currency  = array(
 			'symbol'   => html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ),
 			'position' => get_option( 'woocommerce_currency_pos', 'left' ),
@@ -433,6 +433,7 @@ class B2BCP_Order_Form {
 					<fieldset class="b2bcp-people<?php echo $is_split && ! $ship_each ? ' b2bcp-ship-one' : ''; ?>" data-own-keys="">
 						<legend><?php esc_html_e( 'Products with names', 'b2b-contract-portal' ); ?></legend>
 						<p class="b2bcp-hint"><?php esc_html_e( 'Pick a product and enter the details for each one — each row is 1 unit.', 'b2b-contract-portal' ); ?></p>
+						<?php self::product_picture( $product ); ?>
 						<ul class="b2bcp-option-strip">
 							<?php foreach ( $named as $id => $item ) : ?>
 								<li>
@@ -442,9 +443,6 @@ class B2BCP_Order_Form {
 								</li>
 							<?php endforeach; ?>
 						</ul>
-						<?php if ( $preview ) : ?>
-							<?php self::preview( $company, $preview ); ?>
-						<?php endif; ?>
 						<div class="b2bcp-people-list">
 							<?php
 							foreach ( array_values( $rows ) as $i => $row ) {
@@ -465,6 +463,9 @@ class B2BCP_Order_Form {
 					<fieldset class="b2bcp-qty-cards">
 						<legend><?php echo esc_html( $named ? __( 'Products without names', 'b2b-contract-portal' ) : __( 'Choose quantities', 'b2b-contract-portal' ) ); ?></legend>
 						<p class="b2bcp-hint"><?php esc_html_e( 'Enter a quantity for each product you need.', 'b2b-contract-portal' ); ?></p>
+						<?php if ( ! $named ) : ?>
+							<?php self::product_picture( $product ); ?>
+						<?php endif; ?>
 						<div class="b2bcp-qty-grid">
 							<?php foreach ( $by_qty as $id => $item ) : ?>
 								<?php $price = (float) wc_get_price_to_display( $item ); ?>
@@ -544,42 +545,15 @@ class B2BCP_Order_Form {
 	}
 
 	/**
-	 * Fields that can be shown on the preview (typed or chosen text).
+	 * The product's main image, large, above the names.
 	 *
-	 * @param array $field Field definition.
-	 * @return bool
+	 * @param WC_Product $product Product.
 	 */
-	public static function previewable( array $field ) {
-		return in_array( $field['type'], array( 'text', 'select' ), true );
-	}
-
-	/**
-	 * Live preview: the company's logo band and the first person's first two fields.
-	 *
-	 * @param array   $company Company.
-	 * @param array[] $fields  Up to two fields.
-	 */
-	private static function preview( array $company, array $fields ) {
-		$logo = $company['logo_id'] ? wp_get_attachment_image_url( $company['logo_id'], 'medium' ) : '';
-		?>
-		<div class="b2bcp-preview" aria-hidden="true">
-			<div class="b2bcp-preview-item">
-				<div class="b2bcp-preview-band">
-					<?php if ( $logo ) : ?>
-						<span class="b2bcp-preview-logo"><img src="<?php echo esc_url( $logo ); ?>" alt=""></span>
-					<?php else : ?>
-						<span class="b2bcp-preview-company"><?php echo esc_html( $company['name'] ); ?></span>
-					<?php endif; ?>
-				</div>
-				<div class="b2bcp-preview-lines">
-					<?php foreach ( $fields as $n => $field ) : ?>
-						<span class="b2bcp-preview-line b2bcp-preview-line-<?php echo (int) $n; ?>" data-preview-key="<?php echo esc_attr( $field['key'] ); ?>" data-placeholder="<?php echo esc_attr( $field['label'] ); ?>"><?php echo esc_html( $field['label'] ); ?></span>
-					<?php endforeach; ?>
-				</div>
-			</div>
-			<p class="b2bcp-preview-note"><?php esc_html_e( 'Preview of the first person. The final piece follows your company\'s approved design.', 'b2b-contract-portal' ); ?></p>
-		</div>
-		<?php
+	private static function product_picture( WC_Product $product ) {
+		if ( ! $product->get_image_id() ) {
+			return;
+		}
+		echo '<div class="b2bcp-product-picture">' . wp_kses_post( wp_get_attachment_image( $product->get_image_id(), 'woocommerce_single' ) ) . '</div>';
 	}
 
 	/**

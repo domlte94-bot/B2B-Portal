@@ -6,7 +6,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 WC requires at least: 8.0
 WC tested up to: 10.2
-Stable tag: 0.5.0
+Stable tag: 0.5.1
 License: GPLv2 or later
 
 Contract customers for print and promo shops: client companies, exclusive catalogs and prices, products with parts, per-person names and titles, many addresses in one order.
@@ -44,6 +44,9 @@ Contract prices apply to all variations of a product. Personalization, parts and
 They choose which company they are ordering for in My Account → Company. Catalog, prices and cart follow that choice.
 
 == Changelog ==
+
+= 0.5.1 =
+* Order page: the product's main image shows large above the names (no longer next to the title), instead of the live preview.
 
 = 0.5.0 =
 * Order pages for several products (B2B Portal tab → "Order page for several products"): name rows that each pick a product (e.g. insert only / desk bar + insert), products by quantity as cards with − / +, an optional "Custom quote request" choice, and a live order summary. Each product goes into the cart as its own line at its own price.

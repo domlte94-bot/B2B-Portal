@@ -327,30 +327,6 @@
 			} );
 		}
 
-		// Live preview: the first person's values on the company's sample piece.
-		var preview = box.querySelector( '.b2bcp-preview' );
-		if ( preview && tbody ) {
-			var paint = function () {
-				var first = tbody.querySelector( '.b2bcp-person' );
-				all( preview, '[data-preview-key]' ).forEach( function ( line ) {
-					var input = first ? first.querySelector( '[data-key="' + line.getAttribute( 'data-preview-key' ) + '"] input, [data-key="' + line.getAttribute( 'data-preview-key' ) + '"] select' ) : null;
-					var v = input ? input.value.replace( /\s+/g, ' ' ).trim() : '';
-					var fmt = input && input.getAttribute( 'data-format' );
-					if ( v && fmt ) {
-						v = fmt === 'upper' ? v.toUpperCase() : titleCase( v );
-					}
-					line.textContent = v || line.getAttribute( 'data-placeholder' );
-					line.classList.toggle( 'is-empty', ! v );
-				} );
-			};
-			tbody.addEventListener( 'input', paint );
-			tbody.addEventListener( 'change', paint );
-			tbody.addEventListener( 'click', function () {
-				window.setTimeout( paint, 0 );
-			} );
-			paint();
-		}
-
 		// Order page: − / + steppers and the live summary.
 		if ( box.classList.contains( 'b2bcp-group' ) ) {
 			var currency = {};

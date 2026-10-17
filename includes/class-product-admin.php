@@ -115,7 +115,6 @@ class B2BCP_Product_Admin {
 				<div class="b2bcp-inner" id="b2bcp-personal">
 					<?php B2BCP_Fields::render_builder( 'b2bcp_fields', $config['fields'], 'person' ); ?>
 					<p class="description"><?php esc_html_e( 'Fields with the same label (e.g. "Name") are shared with this product\'s parts, so buyers type each name once.', 'b2b-contract-portal' ); ?></p>
-					<p class="b2bcp-row"><label><input type="checkbox" name="b2bcp_preview" value="yes" <?php checked( 'no' !== get_post_meta( $post->ID, '_b2bcp_preview', true ) ); ?>> <?php esc_html_e( 'Show a live preview to company buyers: their company\'s logo with the first person\'s first two fields (e.g. name and title)', 'b2b-contract-portal' ); ?></label></p>
 				</div>
 
 				<p class="b2bcp-row"><label class="b2bcp-toggle"><input type="checkbox" name="b2bcp_has_parts" value="yes" data-b2bcp-toggle="#b2bcp-parts" <?php checked( $config['has_parts'] ); ?>> <strong><?php esc_html_e( 'This product has parts', 'b2b-contract-portal' ); ?></strong> &mdash; <?php esc_html_e( 'e.g. a desk bar = base + name magnet, or a welcome pack = badge + desk bar + door plate', 'b2b-contract-portal' ); ?></label></p>
@@ -283,7 +282,6 @@ class B2BCP_Product_Admin {
 		$product->update_meta_data( '_b2bcp_template', isset( $_POST['b2bcp_template'] ) && ! (int) $product->get_meta( '_b2bcp_owner_company' ) ? 'yes' : 'no' );
 		$product->update_meta_data( '_b2bcp_visibility', isset( $_POST['b2bcp_visibility'] ) && 'restricted' === $_POST['b2bcp_visibility'] ? 'restricted' : 'public' );
 		$product->update_meta_data( '_b2bcp_personalized', isset( $_POST['b2bcp_personalized'] ) ? 'yes' : 'no' );
-		$product->update_meta_data( '_b2bcp_preview', isset( $_POST['b2bcp_preview'] ) ? 'yes' : 'no' );
 		$product->update_meta_data( '_b2bcp_fields', B2BCP_Fields::sanitize_definitions( $_POST['b2bcp_fields'] ?? array(), 'person' ) );
 		$product->update_meta_data( '_b2bcp_multiaddress', isset( $_POST['b2bcp_multiaddress'] ) ? 'yes' : 'no' );
 		$product->update_meta_data( '_b2bcp_min_per_address', absint( $_POST['b2bcp_min_per_address'] ?? 0 ) );
