@@ -45,9 +45,10 @@ class B2BCP_Shipping {
 	/**
 	 * The Checkout block always shows a shipping address form when the cart ships,
 	 * and gives plugins no way to skip it. When items already ship to saved
-	 * addresses, show WooCommerce's classic checkout on that page instead: it only
-	 * asks for an address when something still needs one, and keeps one shipping
-	 * line per address.
+	 * addresses, or a company buyer is checking out, show WooCommerce's classic
+	 * checkout on that page instead: it only asks for an address when something
+	 * still needs one, keeps one shipping line per address, and lets the company's
+	 * billing show as a summary instead of a form (B2BCP_Payments::billing_summary).
 	 *
 	 * @param string|null $pre          Pre-rendered content.
 	 * @param array       $parsed_block Block.
@@ -60,7 +61,7 @@ class B2BCP_Shipping {
 		if ( is_admin() || wp_is_json_request() || is_wc_endpoint_url( 'order-pay' ) || is_wc_endpoint_url( 'order-received' ) ) {
 			return $pre;
 		}
-		if ( 'no' === get_option( 'b2bcp_classic_checkout', 'yes' ) || ! self::cart_has_saved_addresses() ) {
+		if ( 'no' === get_option( 'b2bcp_classic_checkout', 'yes' ) || ( ! self::cart_has_saved_addresses() && ! b2bcp_active_company_id() ) ) {
 			return $pre;
 		}
 		return '<div class="b2bcp-classic-checkout alignwide">' . do_shortcode( '[woocommerce_checkout]' ) . '</div>';

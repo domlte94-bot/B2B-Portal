@@ -91,8 +91,9 @@ class B2BCP_Fields {
 				'label'     => $label,
 				'type'      => $type,
 				'required'  => ! empty( $row['required'] ),
-				'maxlength' => isset( $row['maxlength'] ) ? max( 0, (int) $row['maxlength'] ) : 0,
-				'format'    => $format,
+				// Max chars and format only apply to typed answers, not to a dropdown's own options.
+				'maxlength' => 'select' !== $type && isset( $row['maxlength'] ) ? max( 0, (int) $row['maxlength'] ) : 0,
+				'format'    => 'select' === $type ? 'none' : $format,
 				'options'   => $options,
 			);
 		}
@@ -210,7 +211,7 @@ class B2BCP_Fields {
 					<th><?php esc_html_e( 'Required', 'b2b-contract-portal' ); ?></th>
 					<th><?php esc_html_e( 'Max chars', 'b2b-contract-portal' ); ?></th>
 					<th><?php esc_html_e( 'Format', 'b2b-contract-portal' ); ?></th>
-					<th><?php esc_html_e( 'Options (comma separated)', 'b2b-contract-portal' ); ?></th>
+					<th><?php esc_html_e( 'Dropdown options (comma separated)', 'b2b-contract-portal' ); ?></th>
 					<th></th>
 				</tr>
 			</thead>
@@ -255,7 +256,8 @@ class B2BCP_Fields {
 	 * @param array  $types Allowed types.
 	 */
 	private static function builder_row( $name, $i, array $field, array $types ) {
-		$base = $name . '[' . $i . ']';
+		$base      = $name . '[' . $i . ']';
+		$is_select = 'select' === $field['type'];
 		?>
 		<tr>
 			<td>
@@ -263,22 +265,23 @@ class B2BCP_Fields {
 				<input type="hidden" name="<?php echo esc_attr( $base ); ?>[key]" value="<?php echo esc_attr( $field['key'] ); ?>">
 			</td>
 			<td>
-				<select name="<?php echo esc_attr( $base ); ?>[type]">
+				<select class="b2bcp-field-type" name="<?php echo esc_attr( $base ); ?>[type]">
 					<?php foreach ( $types as $value => $label ) : ?>
 						<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $field['type'], $value ); ?>><?php echo esc_html( $label ); ?></option>
 					<?php endforeach; ?>
 				</select>
 			</td>
 			<td><input type="checkbox" name="<?php echo esc_attr( $base ); ?>[required]" value="1" <?php checked( $field['required'] ); ?>></td>
-			<td><input type="number" min="0" class="small-text" name="<?php echo esc_attr( $base ); ?>[maxlength]" value="<?php echo $field['maxlength'] ? (int) $field['maxlength'] : ''; ?>"></td>
-			<td>
+			<td class="b2bcp-col-typed" <?php echo $is_select ? 'hidden' : ''; ?>><input type="number" min="0" class="small-text" name="<?php echo esc_attr( $base ); ?>[maxlength]" value="<?php echo $field['maxlength'] ? (int) $field['maxlength'] : ''; ?>"></td>
+			<td class="b2bcp-col-typed" <?php echo $is_select ? 'hidden' : ''; ?>>
 				<select name="<?php echo esc_attr( $base ); ?>[format]">
 					<?php foreach ( self::formats() as $value => $label ) : ?>
 						<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $field['format'], $value ); ?>><?php echo esc_html( $label ); ?></option>
 					<?php endforeach; ?>
 				</select>
 			</td>
-			<td><input type="text" name="<?php echo esc_attr( $base ); ?>[options]" value="<?php echo esc_attr( implode( ', ', $field['options'] ) ); ?>"></td>
+			<?php // Only a dropdown has options: the box is hidden for other types and takes the room of "Max chars" and "Format" for a dropdown. ?>
+			<td class="b2bcp-col-options" colspan="<?php echo $is_select ? 3 : 1; ?>"><input type="text" name="<?php echo esc_attr( $base ); ?>[options]" value="<?php echo esc_attr( implode( ', ', $field['options'] ) ); ?>" placeholder="<?php esc_attr_e( 'e.g. Downtown, North, Airport', 'b2b-contract-portal' ); ?>" aria-label="<?php esc_attr_e( 'Options (comma separated)', 'b2b-contract-portal' ); ?>" <?php echo $is_select ? '' : 'hidden'; ?>></td>
 			<td><button type="button" class="button-link b2bcp-remove-row" aria-label="<?php esc_attr_e( 'Remove field', 'b2b-contract-portal' ); ?>">&times;</button></td>
 		</tr>
 		<?php

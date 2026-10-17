@@ -12,6 +12,11 @@
 .b2bcp-branches input.regular-text { width: 11em; }
 .b2bcp-branches input.small-text { width: 5em; }
 
+.b2bcp-new-product { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 20px; }
+.b2bcp-new-product label { font-weight: 600; }
+#b2bcp-company-products h4 { margin: 16px 0 4px; }
+#b2bcp-company-products h4:first-child { margin-top: 4px; }
+
 .b2bcp-invite { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 .b2bcp-logo-preview img { max-width: 100%; max-height: 120px; display: block; margin-bottom: 8px; border: 1px solid #dcdcde; padding: 6px; background: #fff; }
@@ -29,3 +34,7 @@
 #b2bcp_product_data .b2bcp-parts input[type=text] { width: 100%; }
 #b2bcp_product_data ul.description { list-style: disc; margin-left: 18px; }
 #b2bcp_product_data ul.description li { margin: 2px 0; }
+.b2bcp-field-builder td[hidden], .b2bcp-field-builder input[hidden] { display: none; }
+.b2bcp-field-builder .b2bcp-col-options input { width: 100%; }
+.b2bcp-remove-user { color: #b32d2e; white-space: nowrap; }
+tr.b2bcp-removing td:not(:last-child) { opacity: 0.5; text-decoration: line-through; }

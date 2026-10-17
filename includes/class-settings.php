@@ -55,6 +55,24 @@ class B2BCP_Settings {
 		);
 		register_setting(
 			'b2bcp_settings',
+			'b2bcp_home_is_account',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => function ( $value ) {
+					return 'no' === $value ? 'no' : 'yes';
+				},
+			)
+		);
+		register_setting(
+			'b2bcp_settings',
+			'b2bcp_welcome_message',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_textarea_field',
+			)
+		);
+		register_setting(
+			'b2bcp_settings',
 			'b2bcp_company_bar',
 			array(
 				'type'              => 'string',
@@ -118,10 +136,21 @@ class B2BCP_Settings {
 						<p class="description"><?php esc_html_e( 'If your theme does not show it, place the [b2bcp_company_bar] shortcode where you want it.', 'b2b-contract-portal' ); ?></p></td>
 					</tr>
 					<tr>
+						<th scope="row"><?php esc_html_e( 'Home for company users', 'b2b-contract-portal' ); ?></th>
+						<td><input type="hidden" name="b2bcp_home_is_account" value="no">
+						<label><input type="checkbox" name="b2bcp_home_is_account" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_home_is_account', 'yes' ) ); ?>> <?php esc_html_e( 'Send company users to My account when they open the site\'s home page', 'b2b-contract-portal' ); ?></label>
+						<p class="description"><?php esc_html_e( 'Visitors and store staff still see the normal home page.', 'b2b-contract-portal' ); ?></p></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="b2bcp_welcome_message"><?php esc_html_e( 'Welcome message', 'b2b-contract-portal' ); ?></label></th>
+						<td><textarea class="large-text" rows="4" id="b2bcp_welcome_message" name="b2bcp_welcome_message" placeholder="<?php echo esc_attr( B2BCP_Welcome::default_message() ); ?>"><?php echo esc_textarea( (string) get_option( 'b2bcp_welcome_message', '' ) ); ?></textarea>
+						<p class="description"><?php esc_html_e( 'Shown under "Welcome, name" when an invited user chooses their password and on their account home. You can use {name}, {company} and {store}. Empty = the text shown in grey.', 'b2b-contract-portal' ); ?></p></td>
+					</tr>
+					<tr>
 						<th scope="row"><?php esc_html_e( 'Checkout', 'b2b-contract-portal' ); ?></th>
 						<td><input type="hidden" name="b2bcp_classic_checkout" value="no">
-						<label><input type="checkbox" name="b2bcp_classic_checkout" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_classic_checkout', 'yes' ) ); ?>> <?php esc_html_e( 'Use the classic checkout when items already ship to saved addresses', 'b2b-contract-portal' ); ?></label>
-						<p class="description"><?php esc_html_e( 'The block Checkout always asks for a shipping address, even when every item already has one. With this on, those carts get the classic checkout, which skips it and shows one shipping line per address. Carts without saved addresses keep the block Checkout.', 'b2b-contract-portal' ); ?></p></td>
+						<label><input type="checkbox" name="b2bcp_classic_checkout" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_classic_checkout', 'yes' ) ); ?>> <?php esc_html_e( 'Use the classic checkout for company buyers and for items that ship to saved addresses', 'b2b-contract-portal' ); ?></label>
+						<p class="description"><?php esc_html_e( 'The block Checkout always asks for billing and shipping addresses. With this on, company buyers get the classic checkout: when their company has a billing address it shows as a summary instead of a form, and items that ship to saved addresses are not asked again. Other shoppers keep the block Checkout.', 'b2b-contract-portal' ); ?></p></td>
 					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Invoice payment', 'b2b-contract-portal' ); ?></th>

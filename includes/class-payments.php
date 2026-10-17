@@ -124,6 +124,8 @@ class B2BCP_Payments {
 
 		add_filter( 'woocommerce_checkout_get_value', array( __CLASS__, 'prefill_billing' ), 20, 2 );
 		add_filter( 'woocommerce_checkout_fields', array( __CLASS__, 'lock_billing_fields' ), 50 );
+		add_filter( 'woocommerce_checkout_fields', array( __CLASS__, 'summary_fields' ), 60 );
+		add_action( 'woocommerce_before_checkout_form', array( __CLASS__, 'use_billing_summary' ), 1 );
 		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'stamp_order' ), 20 );
 		add_action( 'woocommerce_store_api_checkout_update_order_from_request', array( __CLASS__, 'stamp_order' ), 20 );
 		add_action( 'woocommerce_admin_order_data_after_billing_address', array( __CLASS__, 'admin_company' ) );
@@ -219,6 +221,110 @@ class B2BCP_Payments {
 			}
 		}
 		return $fields;
+	}
+
+	/**
+	 * Billing values for a company buyer when the company has a billing address on file:
+	 * the contract's billing plus the buyer's own name and email. Null = show the normal form.
+	 *
+	 * @return array<string,string>|null billing_<key> => value
+	 */
+	public static function billing_summary_values() {
+		if ( ! is_user_logged_in() || ! WC()->checkout() ) {
+			return null;
+		}
+		$locked = self::locked_billing();
+		if ( empty( $locked['billing_address_1'] ) ) {
+			return null;
+		}
+		$user     = wp_get_current_user();
+		$customer = WC()->customer;
+		$names    = array(
+			'billing_first_name' => $customer ? $customer->get_billing_first_name() : '',
+			'billing_last_name'  => $customer ? $customer->get_billing_last_name() : '',
+		);
+		if ( '' === $names['billing_first_name'] ) {
+			$names['billing_first_name'] = $user->first_name ? $user->first_name : $user->display_name;
+		}
+		if ( '' === $names['billing_last_name'] ) {
+			$names['billing_last_name'] = $user->last_name;
+		}
+		$email = $customer && $customer->get_billing_email() ? $customer->get_billing_email() : $user->user_email;
+		$phone = $customer ? $customer->get_billing_phone() : '';
+		return $locked + $names + array(
+			'billing_email' => $email,
+			'billing_phone' => $phone,
+		);
+	}
+
+	/**
+	 * Classic checkout: nothing in billing is typed when the summary replaces the form.
+	 *
+	 * @param array $fields Checkout fields.
+	 * @return array
+	 */
+	public static function summary_fields( $fields ) {
+		if ( null === self::billing_summary_values() ) {
+			return $fields;
+		}
+		foreach ( array_keys( $fields['billing'] ?? array() ) as $key ) {
+			$fields['billing'][ $key ]['required'] = false;
+		}
+		return $fields;
+	}
+
+	/**
+	 * Classic checkout: swap WooCommerce's billing form for a read-only summary.
+	 */
+	public static function use_billing_summary() {
+		$checkout = WC()->checkout();
+		if ( null === self::billing_summary_values() || ! $checkout ) {
+			return;
+		}
+		remove_action( 'woocommerce_checkout_billing', array( $checkout, 'checkout_form_billing' ) );
+		add_action( 'woocommerce_checkout_billing', array( __CLASS__, 'billing_summary' ) );
+	}
+
+	/**
+	 * Who orders, who is billed and where it ships, with the values posted as hidden fields.
+	 */
+	public static function billing_summary() {
+		$values  = self::billing_summary_values();
+		$company = b2bcp_get_company( b2bcp_active_company_id() );
+		if ( null === $values || ! $company ) {
+			return;
+		}
+		$countries = WC()->countries;
+		$address   = $countries->get_formatted_address(
+			array(
+				'company'   => $values['billing_company'] ?? $company['name'],
+				'address_1' => $values['billing_address_1'] ?? '',
+				'address_2' => $values['billing_address_2'] ?? '',
+				'city'      => $values['billing_city'] ?? '',
+				'state'     => $values['billing_state'] ?? '',
+				'postcode'  => $values['billing_postcode'] ?? '',
+				'country'   => $values['billing_country'] ?? '',
+			)
+		);
+		$name = trim( $values['billing_first_name'] . ' ' . $values['billing_last_name'] );
+
+		echo '<div class="b2bcp-checkout-summary">';
+		echo '<h3>' . esc_html__( 'Order details', 'b2b-contract-portal' ) . '</h3>';
+		echo '<dl>';
+		echo '<dt>' . esc_html__( 'Ordering for', 'b2b-contract-portal' ) . '</dt><dd>' . esc_html( $company['name'] ) . '</dd>';
+		echo '<dt>' . esc_html__( 'Ordered by', 'b2b-contract-portal' ) . '</dt><dd>' . esc_html( $name ) . '<br>' . esc_html( $values['billing_email'] ) . '</dd>';
+		echo '<dt>' . esc_html__( 'Bill to', 'b2b-contract-portal' ) . '</dt><dd>' . wp_kses_post( $address ) . '</dd>';
+		if ( WC()->cart && WC()->cart->needs_shipping() && ! WC()->cart->needs_shipping_address() ) {
+			echo '<dt>' . esc_html__( 'Ship to', 'b2b-contract-portal' ) . '</dt><dd>' . esc_html__( 'The addresses chosen for each item (listed in your order below).', 'b2b-contract-portal' ) . '</dd>';
+		}
+		echo '</dl>';
+		/* translators: %s: store name */
+		echo '<p class="b2bcp-muted">' . esc_html( sprintf( __( 'Billing is set by your company contract. To change it, contact %s.', 'b2b-contract-portal' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) ) ) . '</p>';
+		// Posted like the normal form (checkout.js also reads #billing_country etc. to update totals).
+		foreach ( $values as $key => $value ) {
+			echo '<input type="hidden" id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '">';
+		}
+		echo '</div>';
 	}
 
 	/**

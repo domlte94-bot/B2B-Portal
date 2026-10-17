@@ -2,10 +2,11 @@
 /**
  * Plugin Name:       B2B Contract Portal for WooCommerce
  * Description:       Contract customers for print and promo shops: client companies with exclusive catalogs and contract prices, products with parts (complete or single parts), per-person personalization (names, titles), multi-address shipping on one order, invoice terms, quote requests and production sheets.
- * Version:           0.2.1
+ * Version:           0.5.1
  * Author:            Muvves Studio
  * Text Domain:       b2b-contract-portal
  * Domain Path:       /languages
+ * Update URI:        https://github.com/domlte94-bot/B2B-Portal
  * Requires at least: 6.3
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
@@ -17,14 +18,19 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'B2BCP_VERSION', '0.2.1' );
+define( 'B2BCP_VERSION', '0.5.1' );
 define( 'B2BCP_FILE', __FILE__ );
 define( 'B2BCP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'B2BCP_URL', plugin_dir_url( __FILE__ ) );
 
 require_once B2BCP_DIR . 'includes/class-install.php';
 
+require_once B2BCP_DIR . 'includes/class-updater.php';
+
 register_activation_hook( __FILE__, array( 'B2BCP_Install', 'activate' ) );
+
+// Updates do not depend on WooCommerce being active.
+B2BCP_Updater::init();
 
 // Declare compatibility with WooCommerce High-Performance Order Storage.
 add_action(
@@ -69,6 +75,8 @@ function b2bcp_boot() {
 		'class-account.php',
 		'class-quotes.php',
 		'class-emails.php',
+		'class-welcome.php',
+		'class-dashboard.php',
 		'class-export.php',
 		'class-settings.php',
 	);
@@ -86,6 +94,8 @@ function b2bcp_boot() {
 	B2BCP_Account::init();
 	B2BCP_Quotes::init();
 	B2BCP_Emails::init();
+	B2BCP_Welcome::init();
+	B2BCP_Dashboard::init();
 	B2BCP_Export::init();
 	B2BCP_Settings::init();
 }

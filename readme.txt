@@ -6,7 +6,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 WC requires at least: 8.0
 WC tested up to: 10.2
-Stable tag: 0.2.1
+Stable tag: 0.5.1
 License: GPLv2 or later
 
 Contract customers for print and promo shops: client companies, exclusive catalogs and prices, products with parts, per-person names and titles, many addresses in one order.
@@ -16,6 +16,7 @@ Contract customers for print and promo shops: client companies, exclusive catalo
 Built for print shops, sign shops and promotional-product stores that sell to companies on contract.
 
 * **Client companies.** Each company has its users (invitation only), shipping addresses, fixed billing address, payment terms and its own logo and accent color.
+* **Templates and company products.** Mark "Name badge" or "Desk bar" as a template once, then create each company's own copy from the company page and give it that company's design, fields and price.
 * **Exclusive catalog and contract prices.** Mark a product "Exclusive" and only the companies it is assigned to can see or order it. Each company can have its own price. Edit assignments from the company or from the product.
 * **Personalized products.** Buyers add one row per person (name, title, any field you define). Each row is one unit. Text can be forced to Title Case or UPPERCASE, with a character limit for the space on the product. Lists can be pasted straight from Excel.
 * **Products with parts.** A product can be made of parts: a desk bar = base + name magnet + back plate, or a welcome pack = badge + desk bar + door plate. Parts can be just a name (for production) or a store product. Mark which parts can also be ordered alone, e.g. a replacement name magnet, charged at that part's own price. Names typed once fill every part that uses them.
@@ -44,8 +45,53 @@ They choose which company they are ordering for in My Account → Company. Catal
 
 == Changelog ==
 
-= 0.2.1 =
-* Block Checkout no longer asks for a shipping address again when items already ship to saved addresses: those carts get the classic checkout (B2B Portal → Settings → Checkout to turn off).
+= 0.5.1 =
+* Order page: the product's main image shows large above the names (no longer next to the title), instead of the live preview.
+
+= 0.5.0 =
+* Order pages for several products (B2B Portal tab → "Order page for several products"): name rows that each pick a product (e.g. insert only / desk bar + insert), products by quantity as cards with − / +, an optional "Custom quote request" choice, and a live order summary. Each product goes into the cart as its own line at its own price.
+
+= 0.4.0 =
+* Order page: products with the order form drop the gallery, tabs, reviews and related products. A short header, then cards (Includes, Shipping, Ordering for) next to "Names for this order", and one large "Add to order" button.
+* Live preview for company buyers: the company logo with the first person's first two fields (on by default, per product in the B2B Portal tab).
+
+= 0.3.11 =
+* Updates: when GitHub's API limit is reached (common on shared hosting), the update check reads the latest release page instead; a failed check is retried after 10 minutes instead of an hour.
+
+= 0.3.10 =
+* Order form: choose "Ship everyone to" one address or "Choose an address for each person"; the per-person address only shows in the second case. With a single address and no way to add more, the form just says where it ships.
+
+= 0.3.9 =
+* Checkout for company buyers: when the company has a billing address, billing shows as a summary (company, buyer, bill-to, ship-to) instead of a form. Company buyers always get the classic checkout.
+
+= 0.3.8 =
+* Block Checkout no longer asks for a shipping address again when items already ship to saved addresses: those carts get the classic checkout, with one shipping line per address (B2B Portal → Settings → Checkout to turn off).
+
+= 0.3.7 =
+* Redesigned account home for company users: banner in the company color with its logo, shortcut tiles, product cards, orders with status, and a tidier account menu.
+
+= 0.3.6 =
+* Company users who open the site's home page are sent to My account (can be turned off in Settings).
+
+= 0.3.5 =
+* My Account home for company users: welcome with the company logo, their products, recent orders and quick links. "Downloads" is removed from their menu.
+
+= 0.3.4 =
+* Company users: removing someone from a company is labelled and explained on the company page.
+
+= 0.3.3 =
+* Invitations open a welcome page to choose a password (with the company logo and a message you can edit in Settings), then log the buyer in. The link is valid for a week.
+
+= 0.3.2 =
+* Emails: no stray characters after the button.
+
+= 0.3.1 =
+* Field builder: the options box only shows for dropdown fields, and is wider.
+
+= 0.3.0 =
+* Templates: mark a product as a template and create each company's own copy from the company page, with that company's design, fields and price.
+* The company page separates products made for the company from shared products.
+* Updates arrive in WordPress like any other plugin (Dashboard → Updates), from the plugin's GitHub releases.
 
 = 0.2.0 =
 * Kits become "products with parts": parts can be just a name, and each part says whether it can be ordered alone.

@@ -39,7 +39,7 @@
 		var tpl = people ? people.querySelector( '.b2bcp-person-template' ) : null;
 
 		function rowFilled( tr ) {
-			return all( tr, 'input[type=text], select:not(.b2bcp-person-address), textarea' ).some( function ( el ) {
+			return all( tr, 'input[type=text], select:not(.b2bcp-person-address):not(.b2bcp-person-product), textarea' ).some( function ( el ) {
 				return el.value.trim() !== '';
 			} );
 		}
@@ -68,7 +68,7 @@
 				var holder = document.createElement( 'div' );
 				holder.innerHTML = html.trim();
 				var row = holder.firstElementChild;
-				var all1 = people.querySelector( '.b2bcp-all-address' );
+				var all1 = box.querySelector( '.b2bcp-all-address' );
 				var sel = row.querySelector( '.b2bcp-person-address' );
 				if ( sel ) {
 					extraOptions.forEach( function ( o ) {
@@ -144,13 +144,29 @@
 				renumber();
 			} );
 
-			var allAddress = people.querySelector( '.b2bcp-all-address' );
+			var allAddress = box.querySelector( '.b2bcp-all-address' );
 			if ( allAddress ) {
 				allAddress.addEventListener( 'change', function () {
 					all( tbody, '.b2bcp-person-address' ).forEach( function ( sel ) {
 						sel.value = allAddress.value;
 					} );
 				} );
+				// "Ship everyone to" vs. "Choose an address for each person": the per-person
+				// selects are hidden in the first mode and keep following the shared one.
+				var syncShipMode = function () {
+					var each = box.querySelector( 'input[name=b2bcp_ship_mode][value=each]' );
+					var one = ! ( each && each.checked );
+					people.classList.toggle( 'b2bcp-ship-one', one );
+					// On an order page the shared address also ships the products by quantity.
+					allAddress.disabled = ! one && ! box.querySelector( '.b2bcp-qty-cards' );
+					if ( one && allAddress.value ) {
+						allAddress.dispatchEvent( new Event( 'change' ) );
+					}
+				};
+				all( box, 'input[name=b2bcp_ship_mode]' ).forEach( function ( radio ) {
+					radio.addEventListener( 'change', syncShipMode );
+				} );
+				syncShipMode();
 			}
 		}
 
@@ -309,6 +325,98 @@
 					save();
 				}
 			} );
+		}
+
+		// Order page: − / + steppers and the live summary.
+		if ( box.classList.contains( 'b2bcp-group' ) ) {
+			var currency = {};
+			try {
+				currency = JSON.parse( box.getAttribute( 'data-currency' ) || '{}' );
+			} catch ( err ) {
+				currency = {};
+			}
+			var money = function ( n ) {
+				var d = typeof currency.decimals === 'number' ? currency.decimals : 2;
+				var parts = n.toFixed( d ).split( '.' );
+				parts[0] = parts[0].replace( /\B(?=(\d{3})+(?!\d))/g, currency.thousand || ',' );
+				var num = parts.join( currency.decimal || '.' );
+				var sym = currency.symbol || '';
+				switch ( currency.position ) {
+					case 'right':
+						return num + sym;
+					case 'right_space':
+						return num + ' ' + sym;
+					case 'left_space':
+						return sym + ' ' + num;
+					default:
+						return sym + num;
+				}
+			};
+			var summary = box.querySelector( '.b2bcp-summary-lines' );
+			var amount = box.querySelector( '.b2bcp-summary-amount' );
+			var emptyText = summary && summary.querySelector( '.b2bcp-summary-empty' ) ? summary.querySelector( '.b2bcp-summary-empty' ).textContent : '';
+			var refresh = function () {
+				var lines = {};
+				var order = [];
+				var add = function ( name, price, qty ) {
+					if ( ! lines[ name ] ) {
+						lines[ name ] = { qty: 0, price: price };
+						order.push( name );
+					}
+					lines[ name ].qty += qty;
+				};
+				if ( tbody ) {
+					all( tbody, '.b2bcp-person' ).forEach( function ( row ) {
+						var sel = row.querySelector( '.b2bcp-person-product' );
+						var opt = sel && sel.selectedIndex > 0 ? sel.options[ sel.selectedIndex ] : null;
+						if ( opt && rowFilled( row ) ) {
+							add( opt.textContent, parseFloat( opt.getAttribute( 'data-price' ) ) || 0, 1 );
+						}
+					} );
+				}
+				all( box, '.b2bcp-qty-card' ).forEach( function ( card ) {
+					var qty = parseInt( card.querySelector( 'input' ).value, 10 ) || 0;
+					if ( qty > 0 ) {
+						add( card.getAttribute( 'data-name' ), parseFloat( card.getAttribute( 'data-price' ) ) || 0, qty );
+					}
+				} );
+				if ( ! summary ) {
+					return;
+				}
+				summary.innerHTML = '';
+				var total = 0;
+				order.forEach( function ( name ) {
+					var l = lines[ name ];
+					total += l.qty * l.price;
+					var li = document.createElement( 'li' );
+					var label = document.createElement( 'span' );
+					label.textContent = l.qty + ' × ' + name;
+					var value = document.createElement( 'span' );
+					value.textContent = money( l.qty * l.price );
+					li.appendChild( label );
+					li.appendChild( value );
+					summary.appendChild( li );
+				} );
+				if ( ! order.length ) {
+					var li = document.createElement( 'li' );
+					li.className = 'b2bcp-summary-empty';
+					li.textContent = emptyText;
+					summary.appendChild( li );
+				}
+				amount.textContent = order.length ? money( total ) : '–';
+			};
+			box.addEventListener( 'click', function ( e ) {
+				var step = e.target.closest( '.b2bcp-step' );
+				if ( step ) {
+					e.preventDefault();
+					var input = step.parentNode.querySelector( 'input' );
+					input.value = Math.max( 0, ( parseInt( input.value, 10 ) || 0 ) + parseInt( step.getAttribute( 'data-step' ), 10 ) );
+				}
+				window.setTimeout( refresh, 0 );
+			} );
+			box.addEventListener( 'input', refresh );
+			box.addEventListener( 'change', refresh );
+			refresh();
 		}
 
 		renumber();

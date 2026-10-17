@@ -1,6 +1,6 @@
 # B2B Contract Portal for WooCommerce
 
-WordPress plugin sold by Muvves Studio (Dome Torres) to print shops, sign shops and promo-product stores that sell to companies on contract. Version 0.2.0 = "Fase 1" of the spec plus the parts/addresses changes. Owner talks in Spanish; plugin UI strings are English with the `b2b-contract-portal` text domain (a `.pot` is in `languages/`).
+WordPress plugin sold by Muvves Studio (Dome Torres) to print shops, sign shops and promo-product stores that sell to companies on contract. Version 0.3.0 = "Fase 1" of the spec plus the parts/addresses changes and templates → company products. Owner talks in Spanish; plugin UI strings are English with the `b2b-contract-portal` text domain (a `.pot` is in `languages/`).
 
 Origin: the ideas come from the Kane RFQ plugin Dome built at Kane Graphical (nametags, desk bars, KaneKlings multi-branch orders). This is a clean rebuild with no Kane code, no Fulcrum/ERP integration and nothing client-specific. Keep it that way.
 
@@ -9,12 +9,15 @@ Origin: the ideas come from the Kane RFQ plugin Dome built at Kane Graphical (na
 - Companies are the core unit: users, branches, fixed billing address, payment mode, terms, logo + accent color.
 - Users join a company **by invitation only**, after the company signs with the print shop. One user can belong to several companies; they pick the active one in My Account → Company (cart is emptied on switch).
 - Products are **Public** (everyone; companies may have a contract price) or **Exclusive** (only assigned companies). Assignments + prices are editable from the company screen and the product tab (same table).
+- **Templates and company products** (0.3.0): a name badge or desk bar has each company's own design (logo, colors), so it is not one general product assigned to many. A product ticked as **Template** is never sold; from the company screen "New product from template" copies it (WooCommerce's duplicator) into "Company – Template name", a draft, exclusive, assigned only to that company, where the store adds that company's images, artwork, fields and price. Copies are independent: editing the template later does not touch them. Shared products (public/exclusive assigned to several companies) stay for things that really are the same for everyone.
 - **Products with parts** (Dome does not want the word "kit"): a desk bar = base + name magnet + back plate; a welcome pack = badge + desk bar + plate. A part is either just a name (production only, uses the main product's personalization) or a store product (uses its own personalization and price). Each part has "can be ordered alone" (only for store-product parts), e.g. the replacement name magnet. Customer chooses "Complete product" or "Only some parts (replacements)". Personalization fields merge by field key so a name is typed once.
+- **Order page** (0.4.0, modelled on the layout of Dome's Kane nametag pages, no Kane code): products that use the order form lose gallery/tabs/reviews/related (`B2BCP_Order_Form::order_page`); header card, side column (Includes, Shipping, Ordering for) + main column (Names for this order with the product's main image above; the live preview was dropped in 0.5.1 at Dome's request), one full-width "Add to order" button.
+- **Order pages for several products** (0.5.0, Dome's desk bar and KaneKlings examples; no authorization signature): product meta `_b2bcp_group`, `_b2bcp_group_named` (each name row picks one, `b2bcp_people[i][_product]`), `_b2bcp_group_qty` (products/variations by quantity, `b2bcp_group_qty[id]`, ship to `b2bcp_ship_all`), `_b2bcp_group_quote` (link to a quote product). `build_group_lines()` runs `build_lines()` per picked product (page's multiaddress, page's fields if the product has none) and adds plain lines for quantities. The page product is never added to the cart (`group_not_in_cart`) and is purchasable without a price (`group_purchasable`). Products on an assigned page are accessible to that company. Live summary is JS only (prices from `wc_get_price_to_display`). Not covered by tests yet.
 - **Personalization**: one row per person = one unit. Field builder (text, dropdown, note) with required, max chars, Title Case / UPPERCASE.
 - **Addresses**: buyers add addresses themselves, on the product page (AJAX panel, saved to the company address book) and in My Account → Company, like the multiple-addresses flow in Dome's Kane plugin. Per-company setting "Buyers can add new shipping addresses" (default on). Company admins can always add; only company admins delete. Customer-facing text says "address", not "branch".
 - **Multi-address**: per product toggle. Each branch is its own WooCommerce shipping package, rated by the store's normal zones/methods (no custom rate system). Company option "shipping included in contract" → single $0 rate. Checkout does not ask for a shipping address when every item ships to a saved address (classic checkout via `woocommerce_cart_needs_shipping_address`; the Checkout block cannot skip it, so `pre_render_block` swaps `woocommerce/checkout` for `[woocommerce_checkout]` when any cart line has a saved address — setting `b2bcp_classic_checkout`, found by Dome testing on her store Oct 16); the order's shipping company then reads "Several addresses — see each item".
 - **No quotes in the cart.** Prices are negotiated outside the plugin. The plugin only has **quote-request products** (no price, form with admin-defined options incl. file upload) for new clients or products outside a company's list. Requests are a CPT with status + emails; follow-up happens outside.
-- **Payment**: per company card, invoice (net terms) or both. Invoice gateway puts orders on hold.
+- **Payment**: per company card, invoice (net terms) or both. Invoice gateway puts orders on hold. Company buyers whose company has a billing address see a read-only summary at checkout instead of the billing form (`B2BCP_Payments::billing_summary`, hidden inputs keep WooCommerce's posted fields; billing fields made optional); company carts always get the classic checkout (0.3.9).
 - Pending business decisions: product name, pricing model (annual license vs monthly). Phase 2 ideas: volume tiers, % discounts, CSV import of prices, bulk CSV people upload, approvals by company admin, contract expiry, live preview of text on the product. Phase 3: ERP integrations, reports, recurring orders.
 
 ## Code map
@@ -23,7 +26,8 @@ Origin: the ideas come from the Kane RFQ plugin Dome built at Kane Graphical (na
 b2b-contract-portal.php      bootstrap, HPOS compatibility, loads includes on plugins_loaded
 includes/class-install.php   tables: {prefix}b2bcp_prices (company_id, product_id, price NULL=regular), {prefix}b2bcp_addresses
 includes/helpers.php         data API: companies, user↔company (user meta _b2bcp_companies/_b2bcp_company_admin/_b2bcp_active_company),
-                             assignments, product config (post meta _b2bcp_*, parts in _b2bcp_has_parts/_b2bcp_parts), access rules, addresses, color contrast, request cache
+                             assignments, product config (post meta _b2bcp_*, parts in _b2bcp_has_parts/_b2bcp_parts), access rules, addresses, color contrast, request cache,
+                             templates (_b2bcp_template) and company products (_b2bcp_owner_company, _b2bcp_template_id; b2bcp_create_company_product())
 includes/class-fields.php    field builder: definitions, sanitize, render, validate/format answers
 includes/class-company-admin.php   CPT b2bcp_company, meta boxes, save, invitations
 includes/class-product-admin.php   "B2B Portal" product tab + save
@@ -36,8 +40,11 @@ includes/class-branding.php  company bar + accent CSS variables
 includes/class-account.php   My Account → Company endpoint (switch company, addresses) + AJAX b2bcp_add_address
 includes/class-quotes.php    quote products, form, CPT b2bcp_quote, admin screens
 includes/class-emails.php    invitation, quote emails (via WC mailer), company header + extra recipients on order emails
+includes/class-welcome.php   invitation link → welcome page on WooCommerce's set-password screen (cookie b2bcp_invite, user meta _b2bcp_invite_pending), auto-login, week-long key
+includes/class-dashboard.php + templates/company-dashboard.php   My Account home for company users (replaces myaccount/dashboard.php via wc_get_template): welcome, products, recent orders, shortcuts
 includes/class-export.php    production sheet CSV (order box + bulk action)
 includes/class-settings.php  B2B Portal → Settings
+includes/class-updater.php   one-click updates from GitHub releases (header `Update URI` + `update_plugins_github.com` filter)
 ```
 
 Cart line data lives in `$cart_item['b2bcp']` and is copied to order item meta `_b2bcp` (array: company_id, address_id, address, people, labels, per_person, part_of, complete, components snapshot, line_id). Readable rows (Ship to, Kit includes, Person N) are added as visible meta.
@@ -48,16 +55,28 @@ Gotchas already handled:
 - In-request caches are versioned; `b2bcp_cache_bust()` runs on assignment changes and any `_b2bcp_*` post meta change.
 - WooCommerce's own add-to-cart is stopped (`unset $_REQUEST['add-to-cart']`) when our form handles the submit on `wp_loaded` priority 19.
 
+## Releasing
+
+Sites update with WordPress's normal "Update now": `class-updater.php` reads the repo's latest GitHub release (cached 1 hour; "Check again" on Dashboard → Updates clears it). To publish a version:
+
+1. Bump `Version:` and `B2BCP_VERSION` in `b2b-contract-portal.php`, `Stable tag` and the changelog in `readme.txt`; merge to `main`.
+2. Build the zip with the plugin inside a `b2b-contract-portal/` folder, leaving out everything in `.distignore`.
+3. `gh release create 0.3.1 b2b-contract-portal-0.3.1.zip --title 0.3.1 --notes "…"`. The tag must be the version number and the zip name must start with `b2b-contract-portal`; a release without that zip is ignored.
+
+If the GitHub API refuses (60 calls/hour per IP, shared on HostGator), the updater falls back to the `releases/latest` redirect and builds the zip URL from the name convention, so keep naming the asset `b2b-contract-portal-<version>.zip`.
+
+The repo is public, so anyone can download releases. Selling it will need a private repo and a license server instead of this updater.
+
 ## Testing
 
 `tests/` holds the scripts used to verify 0.1.0 on WordPress 6.8 + WooCommerce 10.2.2 (SQLite, Twenty Twenty-One, classic cart/checkout):
 
 - `e2e.php` — run with `wp eval-file tests/e2e.php` on a throwaway site: creates products, two companies, branches, invites a user, checks visibility, prices, parts, form validation, cart, shipping packages, payment filtering, order creation, invoice payment, emails, production CSV, quote requests. 89 checks.
-- `check2.php` — `B2BCP_WHO=guest|bank|coop wp eval-file tests/check2.php` after e2e: visibility, gateways, included shipping, shipping-address skip in fresh processes.
-- `admin-save.php` — company and product admin saves, who may add addresses. 18 checks.
+- `check2.php` — `B2BCP_WHO=guest|bank|coop wp eval-file tests/check2.php` after e2e: visibility, gateways, included shipping, shipping-address skip, Checkout block → classic swap, in fresh processes.
+- `admin-save.php` — company and product admin saves, who may add addresses, templates and company products. 30 checks (all passing on 0.3.8, Oct 16).
 - `shots.py` — Playwright: full buyer flow incl. adding an address on the product page, parts mode, classic checkout with invoice, admin screens. Set B2BCP_TEST_DIR; needs logged-in cookies (see the script).
 - `fetch_vendor.py`, `gen_autoload.php` — how WooCommerce was built from its git source when wordpress.org was unreachable.
 
 Never run these on a live store: they create data and change WooCommerce settings.
 
-Not yet tested end to end: the block-based Cart/Checkout in a real store (code paths exist), page caching plugins, multisite.
+Checkout block: verified in the test site with the checkout page set to the block (saved-address carts get the classic checkout). Not yet tested: block Cart in a real store, page caching plugins, multisite.
