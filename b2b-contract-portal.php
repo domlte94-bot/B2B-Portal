@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       B2B Contract Portal for WooCommerce
  * Description:       Contract customers for print and promo shops: client companies with exclusive catalogs and contract prices, products with parts (complete or single parts), per-person personalization (names, titles), multi-address shipping on one order, invoice terms, quote requests and production sheets.
- * Version:           0.3.7
+ * Version:           0.3.8
  * Author:            Muvves Studio
  * Text Domain:       b2b-contract-portal
  * Domain Path:       /languages
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'B2BCP_VERSION', '0.3.7' );
+define( 'B2BCP_VERSION', '0.3.8' );
 define( 'B2BCP_FILE', __FILE__ );
 define( 'B2BCP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'B2BCP_URL', plugin_dir_url( __FILE__ ) );

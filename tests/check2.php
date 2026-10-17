@@ -22,6 +22,13 @@ if ($who === 'guest') {
   ok(false === WC()->cart->needs_shipping_address(), 'Only branch items: checkout does not ask for a shipping address');
   WC()->cart->add_to_cart($mug, 1);
   ok(true === WC()->cart->needs_shipping_address(), 'With an item for the checkout address: shipping address asked');
+  $blk = array('blockName'=>'woocommerce/checkout');
+  ok(false !== strpos((string) B2BCP_Shipping::classic_checkout_for_saved_addresses(null, $blk), 'woocommerce-checkout'), 'Checkout block: cart with saved addresses gets the classic checkout');
+  update_option('b2bcp_classic_checkout','no');
+  ok(null === B2BCP_Shipping::classic_checkout_for_saved_addresses(null, $blk), 'Setting off: Checkout block left alone');
+  update_option('b2bcp_classic_checkout','yes');
+  WC()->cart->empty_cart(); WC()->cart->add_to_cart($mug, 1);
+  ok(null === B2BCP_Shipping::classic_checkout_for_saved_addresses(null, $blk), 'Cart without saved addresses keeps the Checkout block');
   WC()->cart->empty_cart();
 } elseif ($who === 'coop') {
   update_user_meta($ana,'_b2bcp_active_company',$coop); wp_set_current_user($ana);
