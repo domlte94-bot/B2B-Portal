@@ -6,7 +6,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 WC requires at least: 8.0
 WC tested up to: 10.2
-Stable tag: 0.3.9
+Stable tag: 0.3.10
 License: GPLv2 or later
 
 Contract customers for print and promo shops: client companies, exclusive catalogs and prices, products with parts, per-person names and titles, many addresses in one order.
@@ -44,6 +44,9 @@ Contract prices apply to all variations of a product. Personalization, parts and
 They choose which company they are ordering for in My Account → Company. Catalog, prices and cart follow that choice.
 
 == Changelog ==
+
+= 0.3.10 =
+* Order form: choose "Ship everyone to" one address or "Choose an address for each person"; the per-person address only shows in the second case. With a single address and no way to add more, the form just says where it ships.
 
 = 0.3.9 =
 * Checkout for company buyers: when the company has a billing address, billing shows as a summary (company, buyer, bill-to, ship-to) instead of a form. Company buyers always get the classic checkout.

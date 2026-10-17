@@ -154,6 +154,34 @@
 	margin: 0;
 }
 
+.b2bcp-ship-mode {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5em 0.75em;
+	margin: 0 0 1em;
+}
+
+.b2bcp-ship-mode-option {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4em;
+	font-weight: 600;
+}
+
+.b2bcp-ship-mode .b2bcp-ship-mode-option:last-child {
+	flex-basis: 100%;
+	font-weight: normal;
+}
+
+.b2bcp-ship-mode select:disabled {
+	opacity: 0.5;
+}
+
+.b2bcp-people.b2bcp-ship-one .b2bcp-field-address {
+	display: none;
+}
+
 .b2bcp-apply-all {
 	display: flex;
 	flex-wrap: wrap;

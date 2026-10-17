@@ -151,6 +151,21 @@
 						sel.value = allAddress.value;
 					} );
 				} );
+				// "Ship everyone to" vs. "Choose an address for each person": the per-person
+				// selects are hidden in the first mode and keep following the shared one.
+				var syncShipMode = function () {
+					var each = people.querySelector( 'input[name=b2bcp_ship_mode][value=each]' );
+					var one = ! ( each && each.checked );
+					people.classList.toggle( 'b2bcp-ship-one', one );
+					allAddress.disabled = ! one;
+					if ( one && allAddress.value ) {
+						allAddress.dispatchEvent( new Event( 'change' ) );
+					}
+				};
+				all( people, 'input[name=b2bcp_ship_mode]' ).forEach( function ( radio ) {
+					radio.addEventListener( 'change', syncShipMode );
+				} );
+				syncShipMode();
 			}
 		}
 

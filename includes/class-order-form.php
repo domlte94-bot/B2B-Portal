@@ -153,14 +153,24 @@ class B2BCP_Order_Form {
 				$own_keys = $config['personalized'] ? wp_list_pluck( $config['fields'], 'key' ) : array();
 				$rows     = $post_people ? $post_people : array( array() );
 				?>
-				<fieldset class="b2bcp-people" data-own-keys="<?php echo esc_attr( implode( ' ', $own_keys ) ); ?>">
+				<?php
+				// One address for everyone (the per-person "Ship to" is hidden and follows it) or one per person.
+				$ship_choice = $is_split && ( count( $addresses ) > 1 || $can_add );
+				$row_ids     = array_values( array_filter( array_map( 'absint', wp_list_pluck( array_filter( $rows, 'is_array' ), '_address' ) ) ) );
+				$ship_each   = count( array_unique( $row_ids ) ) > 1;
+				$ship_one    = $is_split && ! $ship_each;
+				?>
+				<fieldset class="b2bcp-people<?php echo $ship_one ? ' b2bcp-ship-one' : ''; ?>" data-own-keys="<?php echo esc_attr( implode( ' ', $own_keys ) ); ?>">
 					<legend><?php esc_html_e( 'One row per person', 'b2b-contract-portal' ); ?></legend>
-					<?php if ( $is_split && ( count( $addresses ) > 1 || $can_add ) ) : ?>
-						<p class="b2bcp-apply-all">
-							<label><?php esc_html_e( 'Ship everyone to', 'b2b-contract-portal' ); ?>
-								<?php self::address_select( $addresses, '', '', 'b2bcp-all-address' ); ?>
-							</label>
-						</p>
+					<?php if ( $ship_choice ) : ?>
+						<div class="b2bcp-ship-mode">
+							<label class="b2bcp-ship-mode-option"><input type="radio" name="b2bcp_ship_mode" value="one" <?php checked( ! $ship_each ); ?>> <?php esc_html_e( 'Ship everyone to', 'b2b-contract-portal' ); ?></label>
+							<?php self::address_select( $addresses, '', $row_ids ? (string) $row_ids[0] : ( 1 === count( $addresses ) ? (string) $addresses[0]['id'] : '' ), 'b2bcp-all-address' ); ?>
+							<label class="b2bcp-ship-mode-option"><input type="radio" name="b2bcp_ship_mode" value="each" <?php checked( $ship_each ); ?>> <?php esc_html_e( 'Choose an address for each person', 'b2b-contract-portal' ); ?></label>
+						</div>
+					<?php elseif ( $is_split && $addresses ) : ?>
+						<?php /* translators: %s: address label */ ?>
+						<p class="b2bcp-hint"><?php echo esc_html( sprintf( __( 'Ships to %s', 'b2b-contract-portal' ), b2bcp_address_label( $addresses[0] ) ) ); ?></p>
 					<?php endif; ?>
 					<div class="b2bcp-people-list">
 						<?php
