@@ -68,7 +68,7 @@
 				var holder = document.createElement( 'div' );
 				holder.innerHTML = html.trim();
 				var row = holder.firstElementChild;
-				var all1 = people.querySelector( '.b2bcp-all-address' );
+				var all1 = box.querySelector( '.b2bcp-all-address' );
 				var sel = row.querySelector( '.b2bcp-person-address' );
 				if ( sel ) {
 					extraOptions.forEach( function ( o ) {
@@ -144,7 +144,7 @@
 				renumber();
 			} );
 
-			var allAddress = people.querySelector( '.b2bcp-all-address' );
+			var allAddress = box.querySelector( '.b2bcp-all-address' );
 			if ( allAddress ) {
 				allAddress.addEventListener( 'change', function () {
 					all( tbody, '.b2bcp-person-address' ).forEach( function ( sel ) {
@@ -154,7 +154,7 @@
 				// "Ship everyone to" vs. "Choose an address for each person": the per-person
 				// selects are hidden in the first mode and keep following the shared one.
 				var syncShipMode = function () {
-					var each = people.querySelector( 'input[name=b2bcp_ship_mode][value=each]' );
+					var each = box.querySelector( 'input[name=b2bcp_ship_mode][value=each]' );
 					var one = ! ( each && each.checked );
 					people.classList.toggle( 'b2bcp-ship-one', one );
 					allAddress.disabled = ! one;
@@ -162,7 +162,7 @@
 						allAddress.dispatchEvent( new Event( 'change' ) );
 					}
 				};
-				all( people, 'input[name=b2bcp_ship_mode]' ).forEach( function ( radio ) {
+				all( box, 'input[name=b2bcp_ship_mode]' ).forEach( function ( radio ) {
 					radio.addEventListener( 'change', syncShipMode );
 				} );
 				syncShipMode();
@@ -324,6 +324,30 @@
 					save();
 				}
 			} );
+		}
+
+		// Live preview: the first person's values on the company's sample piece.
+		var preview = box.querySelector( '.b2bcp-preview' );
+		if ( preview && tbody ) {
+			var paint = function () {
+				var first = tbody.querySelector( '.b2bcp-person' );
+				all( preview, '[data-preview-key]' ).forEach( function ( line ) {
+					var input = first ? first.querySelector( '[data-key="' + line.getAttribute( 'data-preview-key' ) + '"] input, [data-key="' + line.getAttribute( 'data-preview-key' ) + '"] select' ) : null;
+					var v = input ? input.value.replace( /\s+/g, ' ' ).trim() : '';
+					var fmt = input && input.getAttribute( 'data-format' );
+					if ( v && fmt ) {
+						v = fmt === 'upper' ? v.toUpperCase() : titleCase( v );
+					}
+					line.textContent = v || line.getAttribute( 'data-placeholder' );
+					line.classList.toggle( 'is-empty', ! v );
+				} );
+			};
+			tbody.addEventListener( 'input', paint );
+			tbody.addEventListener( 'change', paint );
+			tbody.addEventListener( 'click', function () {
+				window.setTimeout( paint, 0 );
+			} );
+			paint();
 		}
 
 		renumber();

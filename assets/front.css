@@ -799,3 +799,241 @@ body.b2bcp-company .woocommerce-MyAccount-navigation li.is-active a {
 	color: rgba(0, 0, 0, 0.6);
 	font-size: 0.9em;
 }
+
+/* Order page (product pages with the order form): header, two columns of cards, one big button. */
+body.b2bcp-order-page div.product div.summary {
+	float: none;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+}
+
+.b2bcp-order-head {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	margin: 0 0 24px;
+}
+
+.b2bcp-order-head img.b2bcp-order-head-image {
+	flex: 0 0 auto;
+	width: 96px;
+	height: 96px;
+	object-fit: cover;
+	margin: 0;
+	border-radius: 12px;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.b2bcp-order-head-text {
+	min-width: 0;
+}
+
+.b2bcp-order-head .product_title {
+	margin: 0 0 4px;
+}
+
+.b2bcp-order-head .price {
+	margin: 0;
+	font-weight: 600;
+}
+
+.b2bcp-order-head-desc {
+	margin-top: 6px;
+	color: rgba(0, 0, 0, 0.65);
+}
+
+.b2bcp-order-head-desc p:last-child {
+	margin-bottom: 0;
+}
+
+body.b2bcp-order-page form.cart {
+	display: block;
+}
+
+body.b2bcp-order-page .b2bcp-order {
+	display: grid;
+	grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+	gap: 24px;
+	align-items: start;
+	margin: 0 0 20px;
+}
+
+body.b2bcp-order-page .b2bcp-order.b2bcp-order-single {
+	grid-template-columns: minmax(0, 1fr);
+	max-width: 640px;
+}
+
+.b2bcp-order-side,
+.b2bcp-order-main {
+	min-width: 0;
+}
+
+body.b2bcp-order-page .b2bcp-order fieldset {
+	margin: 0 0 24px;
+	padding: 0 22px 20px;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 14px;
+	background: #ffffff;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Legends as card headers: a floated legend sits inside the card like a heading. */
+body.b2bcp-order-page .b2bcp-order legend {
+	float: left;
+	width: calc(100% + 44px);
+	margin: 0 -22px 16px;
+	padding: 16px 22px 14px;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+	font-size: 1em;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	box-sizing: border-box;
+}
+
+body.b2bcp-order-page .b2bcp-order legend::before {
+	content: "";
+	display: inline-block;
+	width: 7px;
+	height: 7px;
+	margin: 0 10px 2px 0;
+	border-radius: 50%;
+	background: var(--b2bcp-accent, #333333);
+	vertical-align: middle;
+}
+
+body.b2bcp-order-page .b2bcp-order legend + * {
+	clear: both;
+}
+
+body.b2bcp-branded.b2bcp-order-page .b2bcp-order legend {
+	border-bottom-width: 1px;
+	border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+.b2bcp-orderer dl {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 8px 16px;
+	margin: 0 0 10px;
+}
+
+.b2bcp-orderer dt {
+	font-weight: 600;
+}
+
+.b2bcp-orderer dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.b2bcp-ship .b2bcp-ship-mode {
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.b2bcp-ship .b2bcp-ship-mode select {
+	width: 100%;
+}
+
+/* Live preview of the first person on the company's piece. */
+.b2bcp-preview {
+	margin: 4px 0 20px;
+	padding: 28px 16px 14px;
+	border-radius: 12px;
+	background: rgba(0, 0, 0, 0.035);
+	text-align: center;
+}
+
+.b2bcp-preview-item {
+	display: inline-block;
+	width: 100%;
+	max-width: 320px;
+	overflow: hidden;
+	border: 1px solid rgba(0, 0, 0, 0.18);
+	border-radius: 10px;
+	background: #ffffff;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.b2bcp-preview-band {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 56px;
+	padding: 8px 14px;
+	background: var(--b2bcp-accent, #333333);
+	color: var(--b2bcp-accent-ink, #ffffff);
+}
+
+.b2bcp-preview-logo {
+	display: inline-flex;
+	padding: 5px 10px;
+	border-radius: 6px;
+	background: #ffffff;
+}
+
+.b2bcp-preview-logo img {
+	display: block;
+	max-height: 34px;
+	max-width: 200px;
+	width: auto;
+	height: auto;
+}
+
+.b2bcp-preview-company {
+	font-weight: 700;
+	font-size: 1.1em;
+}
+
+.b2bcp-preview-lines {
+	padding: 12px 14px 14px;
+}
+
+.b2bcp-preview-line {
+	display: block;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.b2bcp-preview-line-0 {
+	font-size: 1.25em;
+	font-weight: 600;
+}
+
+.b2bcp-preview-line-1 {
+	font-size: 0.9em;
+	color: rgba(0, 0, 0, 0.65);
+}
+
+.b2bcp-preview-line.is-empty {
+	opacity: 0.4;
+}
+
+.b2bcp-preview-note {
+	margin: 12px 0 0;
+	font-size: 0.8em;
+	color: rgba(0, 0, 0, 0.55);
+}
+
+/* One large button across the page. */
+body.b2bcp-order-page form.cart .single_add_to_cart_button {
+	display: block;
+	float: none;
+	width: 100%;
+	padding: 16px 24px;
+	border-radius: 999px;
+	font-size: 1.05em;
+	font-weight: 700;
+	background-color: var(--b2bcp-accent, #222222);
+	border-color: var(--b2bcp-accent, #222222);
+	color: var(--b2bcp-accent-ink, #ffffff);
+}
+
+@media (max-width: 860px) {
+	body.b2bcp-order-page .b2bcp-order {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
