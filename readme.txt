@@ -6,7 +6,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 WC requires at least: 8.0
 WC tested up to: 10.2
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 License: GPLv2 or later
 
 Contract customers for print and promo shops: client companies, exclusive catalogs and prices, products with parts, per-person names and titles, many addresses in one order.
@@ -34,7 +34,7 @@ Built for print shops, sign shops and promotional-product stores that sell to co
 == Frequently Asked Questions ==
 
 = Does it work with the block Cart and Checkout? =
-It is built for both, using WooCommerce's shared cart, shipping and order hooks plus a block integration for the invoice payment method. Version 0.2.0 was tested end to end on the classic cart and checkout; test the block checkout on your store before going live. In both, the fixed company billing address is applied when the order is saved.
+It is built for both, using WooCommerce's shared cart, shipping and order hooks plus a block integration for the invoice payment method. The Checkout block always asks for a shipping address, so when items already ship to saved addresses the plugin shows the classic checkout on that page (you can turn this off in B2B Portal → Settings). Other carts keep the block Checkout. In both, the fixed company billing address is applied when the order is saved.
 
 = Does it work with variable products? =
 Contract prices apply to all variations of a product. Personalization, parts and multi-address are designed for simple products.
@@ -43,6 +43,9 @@ Contract prices apply to all variations of a product. Personalization, parts and
 They choose which company they are ordering for in My Account → Company. Catalog, prices and cart follow that choice.
 
 == Changelog ==
+
+= 0.2.1 =
+* Block Checkout no longer asks for a shipping address again when items already ship to saved addresses: those carts get the classic checkout (B2B Portal → Settings → Checkout to turn off).
 
 = 0.2.0 =
 * Kits become "products with parts": parts can be just a name, and each part says whether it can be ordered alone.

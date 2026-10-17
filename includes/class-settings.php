@@ -45,6 +45,16 @@ class B2BCP_Settings {
 		);
 		register_setting(
 			'b2bcp_settings',
+			'b2bcp_classic_checkout',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => function ( $value ) {
+					return 'no' === $value ? 'no' : 'yes';
+				},
+			)
+		);
+		register_setting(
+			'b2bcp_settings',
 			'b2bcp_company_bar',
 			array(
 				'type'              => 'string',
@@ -106,6 +116,12 @@ class B2BCP_Settings {
 						<td><input type="hidden" name="b2bcp_company_bar" value="no">
 						<label><input type="checkbox" name="b2bcp_company_bar" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_company_bar', 'yes' ) ); ?>> <?php esc_html_e( 'Show the company logo bar at the top of every page for company users', 'b2b-contract-portal' ); ?></label>
 						<p class="description"><?php esc_html_e( 'If your theme does not show it, place the [b2bcp_company_bar] shortcode where you want it.', 'b2b-contract-portal' ); ?></p></td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Checkout', 'b2b-contract-portal' ); ?></th>
+						<td><input type="hidden" name="b2bcp_classic_checkout" value="no">
+						<label><input type="checkbox" name="b2bcp_classic_checkout" value="yes" <?php checked( 'no' !== get_option( 'b2bcp_classic_checkout', 'yes' ) ); ?>> <?php esc_html_e( 'Use the classic checkout when items already ship to saved addresses', 'b2b-contract-portal' ); ?></label>
+						<p class="description"><?php esc_html_e( 'The block Checkout always asks for a shipping address, even when every item already has one. With this on, those carts get the classic checkout, which skips it and shows one shipping line per address. Carts without saved addresses keep the block Checkout.', 'b2b-contract-portal' ); ?></p></td>
 					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Invoice payment', 'b2b-contract-portal' ); ?></th>

@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: B2B Contract Portal for WooCommerce 0.2.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/b2b-contract-portal\n"
+"Project-Id-Version: B2B Contract Portal for WooCommerce 0.2.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/b2b-portal\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-09T21:13:50+00:00\n"
+"POT-Creation-Date: 2026-10-17T00:48:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: b2b-contract-portal\n"
@@ -591,7 +591,7 @@ msgstr ""
 #: includes/class-order-form.php:190
 #: includes/class-order-form.php:266
 #: includes/class-order-form.php:592
-#: includes/class-shipping.php:144
+#: includes/class-shipping.php:186
 msgid "Ship to"
 msgstr ""
 
@@ -1221,53 +1221,65 @@ msgid "New (no contract)"
 msgstr ""
 
 #: includes/class-settings.php:29
-#: includes/class-settings.php:95
+#: includes/class-settings.php:105
 msgid "B2B Portal settings"
 msgstr ""
 
 #: includes/class-settings.php:29
-#: includes/class-settings.php:85
+#: includes/class-settings.php:95
 msgid "Settings"
 msgstr ""
 
-#: includes/class-settings.php:100
+#: includes/class-settings.php:110
 msgid "Quote requests go to"
 msgstr ""
 
-#: includes/class-settings.php:102
+#: includes/class-settings.php:112
 msgid "Comma separated. Empty = the site admin email."
 msgstr ""
 
-#: includes/class-settings.php:105
+#: includes/class-settings.php:115
 msgid "Company bar"
 msgstr ""
 
-#: includes/class-settings.php:107
+#: includes/class-settings.php:117
 msgid "Show the company logo bar at the top of every page for company users"
 msgstr ""
 
-#: includes/class-settings.php:108
+#: includes/class-settings.php:118
 msgid "If your theme does not show it, place the [b2bcp_company_bar] shortcode where you want it."
 msgstr ""
 
-#: includes/class-settings.php:111
+#: includes/class-settings.php:121
+msgid "Checkout"
+msgstr ""
+
+#: includes/class-settings.php:123
+msgid "Use the classic checkout when items already ship to saved addresses"
+msgstr ""
+
+#: includes/class-settings.php:124
+msgid "The block Checkout always asks for a shipping address, even when every item already has one. With this on, those carts get the classic checkout, which skips it and shows one shipping line per address. Carts without saved addresses keep the block Checkout."
+msgstr ""
+
+#: includes/class-settings.php:127
 msgid "Invoice payment"
 msgstr ""
 
-#: includes/class-settings.php:112
+#: includes/class-settings.php:128
 msgid "Edit the invoice payment method"
 msgstr ""
 
-#: includes/class-settings.php:113
+#: includes/class-settings.php:129
 msgid "Which companies may pay by invoice is set on each company."
 msgstr ""
 
 #. translators: %s: branch
-#: includes/class-shipping.php:110
+#: includes/class-shipping.php:152
 msgid "Shipping to %s"
 msgstr ""
 
-#: includes/class-shipping.php:127
+#: includes/class-shipping.php:169
 msgid "Shipping included in contract"
 msgstr ""
 

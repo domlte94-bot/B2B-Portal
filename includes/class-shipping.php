@@ -22,6 +22,48 @@ class B2BCP_Shipping {
 		add_filter( 'woocommerce_package_rates', array( __CLASS__, 'included_rates' ), 100, 2 );
 		add_action( 'woocommerce_checkout_create_order_shipping_item', array( __CLASS__, 'shipping_item_meta' ), 10, 4 );
 		add_filter( 'woocommerce_cart_needs_shipping_address', array( __CLASS__, 'needs_shipping_address' ), 20 );
+		add_filter( 'pre_render_block', array( __CLASS__, 'classic_checkout_for_saved_addresses' ), 10, 2 );
+	}
+
+	/**
+	 * Whether any cart line already ships to a saved address.
+	 *
+	 * @return bool
+	 */
+	public static function cart_has_saved_addresses() {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return false;
+		}
+		foreach ( WC()->cart->get_cart() as $item ) {
+			if ( ! empty( $item['b2bcp']['address'] ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * The Checkout block always shows a shipping address form when the cart ships,
+	 * and gives plugins no way to skip it. When items already ship to saved
+	 * addresses, show WooCommerce's classic checkout on that page instead: it only
+	 * asks for an address when something still needs one, and keeps one shipping
+	 * line per address.
+	 *
+	 * @param string|null $pre          Pre-rendered content.
+	 * @param array       $parsed_block Block.
+	 * @return string|null
+	 */
+	public static function classic_checkout_for_saved_addresses( $pre, $parsed_block ) {
+		if ( null !== $pre || 'woocommerce/checkout' !== ( $parsed_block['blockName'] ?? '' ) ) {
+			return $pre;
+		}
+		if ( is_admin() || wp_is_json_request() || is_wc_endpoint_url( 'order-pay' ) || is_wc_endpoint_url( 'order-received' ) ) {
+			return $pre;
+		}
+		if ( 'no' === get_option( 'b2bcp_classic_checkout', 'yes' ) || ! self::cart_has_saved_addresses() ) {
+			return $pre;
+		}
+		return '<div class="b2bcp-classic-checkout alignwide">' . do_shortcode( '[woocommerce_checkout]' ) . '</div>';
 	}
 
 	/**
